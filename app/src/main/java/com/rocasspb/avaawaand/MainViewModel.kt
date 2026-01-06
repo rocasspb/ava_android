@@ -1,5 +1,6 @@
 package com.rocasspb.avaawaand
 
+import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,6 +9,11 @@ import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.MainRepositoryImpl
 import com.rocasspb.avaawaand.data.RegionResponse
+import com.rocasspb.avaawaand.logic.AvalancheLogic
+import com.rocasspb.avaawaand.logic.GenerationRule
+import com.rocasspb.avaawaand.logic.VisualizationMode
+import com.rocasspb.avaawaand.utils.GeometryUtils
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
@@ -28,6 +34,11 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
+
+    private val _generationRules = MutableLiveData<List<GenerationRule>>()
+    val generationRules: LiveData<List<GenerationRule>> = _generationRules
+
+    private var currentVisualizationMode = VisualizationMode.BULLETIN
 
     init {
         // Load initial data
@@ -54,9 +65,28 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
                 val avalancheResponse = repository.getAvalancheData()
                 _avalancheData.value = avalancheResponse.bulletins
+                
+                calculateRules()
             } catch (e: Exception) {
                 _error.value = e.message
             }
         }
+    }
+
+    fun setVisualizationMode(mode: VisualizationMode) {
+        currentVisualizationMode = mode
+        calculateRules()
+    }
+    
+    fun calculateRules() {
+         viewModelScope.launch(Dispatchers.Default) {
+             val bulletins = _avalancheData.value ?: return@launch
+             val regions = _regions.value ?: return@launch
+             
+             val bands = AvalancheLogic.processRegionElevations(bulletins)
+             val rules = AvalancheLogic.generateRules(bands, regions.features, currentVisualizationMode)
+             
+             _generationRules.postValue(rules)
+         }
     }
 }
