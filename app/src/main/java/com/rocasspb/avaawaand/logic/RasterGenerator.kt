@@ -89,8 +89,6 @@ object RasterGenerator {
                         val checkAspect = !rule.validAspects.isNullOrEmpty()
                         val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
 
-                        var skip = false
-
                         var effectiveDlValue = dlValue
                         if (checkAspect || checkSlope) {
                             val metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
@@ -102,7 +100,7 @@ object RasterGenerator {
                                     }
                                 }
                                 
-                                if (!skip && checkAspect) {
+                                if (checkAspect) {
                                     if (!rule.validAspects.contains(metrics.aspect)) {
                                         if (dlValue <= 1) continue
                                         else effectiveDlValue--
@@ -116,8 +114,8 @@ object RasterGenerator {
                         var finalColor = baseColor
 
                         if (rule.applySteepnessLogic && slope != null) {
-                            val highColor = parseColor(AvalancheConfig.DANGER_COLORS["high"] ?: "#FF0000")
-                            val considerableColor = parseColor(AvalancheConfig.DANGER_COLORS["considerable"] ?: "#FF9900")
+                            val highColor = parseColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
+                            val considerableColor = parseColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
                             
                             if (effectiveDlValue >= 4) {
                                 finalColor = if (slope > 30) highColor else considerableColor

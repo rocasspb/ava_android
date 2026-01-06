@@ -180,7 +180,7 @@ object AvalancheLogic {
         for (band in bands) {
             val feature = regionsMap[band.regionID] ?: continue
             val bounds = GeometryUtils.getBounds(feature)
-            val color = AvalancheConfig.DANGER_COLORS[band.dangerLevel] ?: AvalancheConfig.DANGER_COLORS["default"]!!
+            val color = AvalancheConfig.DANGER_COLORS[AvalancheConfig.DANGER_LEVEL_VALUES[band.dangerLevel]] ?: "0xFFFFFF"
             
             val useAspectAndElevation = visualizationMode == VisualizationMode.RISK
             val (ruleMin, ruleMax) = adjustElevationForTreeline(band.minElev, band.maxElev, band.avalancheProblems)

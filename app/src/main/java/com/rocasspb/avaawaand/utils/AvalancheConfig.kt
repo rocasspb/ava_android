@@ -6,14 +6,11 @@ object AvalancheConfig {
     const val GRID_POINTS_DENSITY = 100 // Adjust as needed
     
     val DANGER_COLORS = mapOf(
-        "1" to "#CCFF66",
-        "2" to "#FFFF00",
-        "3" to "#FF9900",
-        "4" to "#FF0000",
-        "5" to "#330000",
-        "default" to "#FFFFFF",
-        "high" to "#FF0000",
-        "considerable" to "#FF9900"
+        1 to "#CCFF66",
+        2 to "#FFFF00",
+        3 to "#FF9900",
+        4 to "#FF0000",
+        5 to "#330000",
     )
     
     val DANGER_LEVEL_VALUES = mapOf(
