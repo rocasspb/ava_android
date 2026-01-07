@@ -128,9 +128,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         // Highlight selected
         when (mode) {
-            VisualizationMode.BULLETIN -> highlightOptionUi(bgBulletin, iconBulletin, textBulletin)
-            VisualizationMode.RISK -> highlightOptionUi(bgRisk, iconRisk, textRisk)
-            VisualizationMode.CUSTOM -> highlightOptionUi(bgCustom, iconCustom, textCustom)
+            VisualizationMode.BULLETIN -> {
+                highlightOptionUi(bgBulletin, iconBulletin, textBulletin)
+                fabMode.setImageResource(R.drawable.ic_bulletin)
+            }
+            VisualizationMode.RISK -> {
+                highlightOptionUi(bgRisk, iconRisk, textRisk)
+                fabMode.setImageResource(R.drawable.ic_landscape)
+            }
+            VisualizationMode.CUSTOM -> {
+                highlightOptionUi(bgCustom, iconCustom, textCustom)
+                fabMode.setImageResource(R.drawable.ic_custom)
+            }
         }
     }
 
