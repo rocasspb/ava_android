@@ -7,7 +7,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.RasterGenerator
-import com.rocasspb.avaawaand.logic.SimpleElevationProvider
+import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
@@ -108,9 +108,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             visibleBounds.latitudeSouth,
             visibleBounds.latitudeNorth
         )
+        val zoom = map.cameraPosition.zoom
 
         lifecycleScope.launch(Dispatchers.Default) {
-            val provider = SimpleElevationProvider()
+            val provider = TerrainRgbElevationProvider()
+            provider.prepare(renderBounds, zoom)
             
             // Generate bitmap for the current visible bounds
             val bitmap = RasterGenerator.drawToBitmap(rules, renderBounds, provider) ?: return@launch
