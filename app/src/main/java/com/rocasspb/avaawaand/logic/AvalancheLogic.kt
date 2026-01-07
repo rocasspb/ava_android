@@ -45,47 +45,10 @@ object AvalancheLogic {
                             
                             val aspects = mutableSetOf<String>()
                             if (matchingProblems.isNotEmpty()) {
-                                var minElev = rMax // Invert for intersection
-                                var maxElev = rMin
-                                
-                                matchingProblems.forEach { p ->
-                                    p.aspects?.let { aspects.addAll(it) }
-                                    val pMin = parseElevation(p.elevation?.lowerBound)
-                                    val pMax = parseElevation(p.elevation?.upperBound, true)
-                                    minElev = min(minElev, pMin)
-                                    maxElev = max(maxElev, pMax)
-                                }
-                                
-                                // Actually the logic in TS was:
-                                // minElev = Math.min(minElev, pMin); maxElev = Math.max(maxElev, pMax);
-                                // The TS code was:
-                                // var minElev = rMax; var maxElev = rMin;
-                                // then loop... minElev = Math.min(minElev, pMin); maxElev = Math.max(maxElev, pMax);
-                                // then rMin = minElev; rMax = maxElev;
-                                // It seems to expand the range to cover all matching problems? 
-                                // Or maybe "intersection" logic in TS was weird.
-                                // Let's try to interpret intent:
-                                // We want to show the danger color where the problem exists.
-                                // If multiple problems exist in that rating band, we combine their ranges?
-                                // Let's stick to simple logic: Use the rating elevation, but filter by problem aspects.
-                                
-                                // Re-reading TS:
-                                // minElev = Math.min(minElev, pMin) -> This expands the lower bound downwards
-                                // maxElev = Math.max(maxElev, pMax) -> This expands the upper bound upwards
-                                // So it takes the UNION of elevations of all matching problems.
-                                
-                                // BUT:
-                                // The initial values were swapped: minElev = rMax, maxElev = rMin
-                                // If rMax=2000, rMin=0. 
-                                // pMin=1000, pMax=2500.
-                                // minElev = min(2000, 1000) = 1000.
-                                // maxElev = max(0, 2500) = 2500.
-                                // Result: 1000-2500.
-                                // It seems to find the Union of problem elevations that overlap with rating.
-                                
                                 var unionMin = rMax
                                 var unionMax = rMin
                                 matchingProblems.forEach { p ->
+                                    p.aspects?.let { aspects.addAll(it) }
                                     val pMin = parseElevation(p.elevation?.lowerBound)
                                     val pMax = parseElevation(p.elevation?.upperBound, true)
                                     unionMin = min(unionMin, pMin)
@@ -204,8 +167,4 @@ object AvalancheLogic {
         }
         return rules
     }
-}
-
-enum class VisualizationMode {
-    BULLETIN, RISK, CUSTOM
 }
