@@ -1,6 +1,5 @@
 package com.rocasspb.avaawaand
 
-import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,7 +11,6 @@ import com.rocasspb.avaawaand.data.RegionResponse
 import com.rocasspb.avaawaand.logic.AvalancheLogic
 import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.VisualizationMode
-import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.maplibre.android.camera.CameraPosition
@@ -38,7 +36,8 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     private val _generationRules = MutableLiveData<List<GenerationRule>>()
     val generationRules: LiveData<List<GenerationRule>> = _generationRules
 
-    private var currentVisualizationMode = VisualizationMode.BULLETIN
+    private val _visualizationMode = MutableLiveData<VisualizationMode>(VisualizationMode.BULLETIN)
+    val visualizationMode: LiveData<VisualizationMode> = _visualizationMode
 
     init {
         // Load initial data
@@ -46,7 +45,7 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
         fetchData()
     }
 
-    fun loadMapConfig() {
+    private fun loadMapConfig() {
         val apiKey = BuildConfig.MAPTILER_KEY
         _mapStyleUrl.value = "https://api.maptiler.com/maps/winter-v2/style.json?key=${apiKey}"
         
@@ -54,6 +53,18 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
             .target(LatLng(47.26, 11.77))
             .zoom(8.0)
             .build()
+    }
+
+    fun restoreState(lat: Double, lon: Double, zoom: Double, mode: VisualizationMode) {
+        _initialCameraPosition.value = CameraPosition.Builder()
+            .target(LatLng(lat, lon))
+            .zoom(zoom)
+            .build()
+        
+        if (_visualizationMode.value != mode) {
+            _visualizationMode.value = mode
+            calculateRules()
+        }
     }
 
     fun fetchData() {
@@ -74,17 +85,20 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     }
 
     fun setVisualizationMode(mode: VisualizationMode) {
-        currentVisualizationMode = mode
-        calculateRules()
+        if (_visualizationMode.value != mode) {
+            _visualizationMode.value = mode
+            calculateRules()
+        }
     }
     
     fun calculateRules() {
          viewModelScope.launch(Dispatchers.Default) {
              val bulletins = _avalancheData.value ?: return@launch
              val regions = _regions.value ?: return@launch
+             val currentMode = _visualizationMode.value ?: VisualizationMode.BULLETIN
              
              val bands = AvalancheLogic.processRegionElevations(bulletins)
-             val rules = AvalancheLogic.generateRules(bands, regions.features, currentVisualizationMode)
+             val rules = AvalancheLogic.generateRules(bands, regions.features, currentMode)
              
              _generationRules.postValue(rules)
          }

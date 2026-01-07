@@ -31,6 +31,7 @@ import org.maplibre.android.maps.Style
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.RasterLayer
 import org.maplibre.android.style.sources.ImageSource
+import androidx.core.content.edit
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -64,6 +65,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         mapView = findViewById(R.id.mapView)
         mapView?.onCreate(savedInstanceState)
         mapView?.getMapAsync(this)
+        
+        // Restore state
+        val prefs = getPreferences(MODE_PRIVATE)
+        val lat = prefs.getFloat("lat", 47.26f).toDouble()
+        val lon = prefs.getFloat("lon", 11.77f).toDouble()
+        val zoom = prefs.getFloat("zoom", 8.0f).toDouble()
+        val modeName = prefs.getString("mode", VisualizationMode.BULLETIN.name)
+        val mode = try {
+            VisualizationMode.valueOf(modeName ?: VisualizationMode.BULLETIN.name)
+        } catch (e: Exception) {
+            VisualizationMode.BULLETIN
+        }
+        
+        viewModel.restoreState(lat, lon, zoom, mode)
 
         setupViews()
         setupListeners()
@@ -89,8 +104,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         iconCustom = findViewById(R.id.iconCustom)
         textCustom = findViewById(R.id.textCustom)
 
-        // Initial state
-        updateModeSelectionUi(VisualizationMode.BULLETIN)
+        // Observe visualization mode to update UI
+        viewModel.visualizationMode.observe(this, Observer { mode ->
+             updateModeSelectionUi(mode)
+        })
     }
 
     private fun setupListeners() {
@@ -106,17 +123,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         optionBulletin.setOnClickListener {
             viewModel.setVisualizationMode(VisualizationMode.BULLETIN)
-            updateModeSelectionUi(VisualizationMode.BULLETIN)
         }
 
         optionRisk.setOnClickListener {
             viewModel.setVisualizationMode(VisualizationMode.RISK)
-            updateModeSelectionUi(VisualizationMode.RISK)
         }
 
         optionCustom.setOnClickListener {
             viewModel.setVisualizationMode(VisualizationMode.CUSTOM)
-            updateModeSelectionUi(VisualizationMode.CUSTOM)
         }
     }
 
@@ -192,9 +206,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
                 overlayRaster(rules, style)
             }
         }
-
-        // Set mode to BULLETIN
-        viewModel.setVisualizationMode(VisualizationMode.BULLETIN)
     }
 
     private fun setupMapUiSettings(map: MapLibreMap) {
@@ -271,6 +282,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
     override fun onPause() {
         super.onPause()
         mapView?.onPause()
+        
+        val map = mapLibreMap ?: return
+        val camera = map.cameraPosition
+        val target = camera.target ?: return
+        val mode = viewModel.visualizationMode.value ?: VisualizationMode.BULLETIN
+        
+        val prefs = getPreferences(MODE_PRIVATE)
+        prefs.edit {
+            putFloat("lat", target.latitude.toFloat())
+            putFloat("lon", target.longitude.toFloat())
+            putFloat("zoom", camera.zoom.toFloat())
+            putString("mode", mode.name)
+        }
     }
 
     override fun onStop() {
