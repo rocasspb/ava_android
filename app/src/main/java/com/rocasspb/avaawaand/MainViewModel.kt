@@ -4,6 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mapbox.geojson.Point
+import com.mapbox.maps.CameraOptions
+import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.MainRepositoryImpl
@@ -13,16 +16,14 @@ import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.maplibre.android.camera.CameraPosition
-import org.maplibre.android.geometry.LatLng
 
 class MainViewModel(private val repository: MainRepository = MainRepositoryImpl()) : ViewModel() {
 
     private val _mapStyleUrl = MutableLiveData<String>()
     val mapStyleUrl: LiveData<String> = _mapStyleUrl
 
-    private val _initialCameraPosition = MutableLiveData<CameraPosition>()
-    val initialCameraPosition: LiveData<CameraPosition> = _initialCameraPosition
+    private val _initialCameraPosition = MutableLiveData<CameraOptions>()
+    val initialCameraPosition: LiveData<CameraOptions> = _initialCameraPosition
 
     private val _regions = MutableLiveData<RegionResponse>()
     val regions: LiveData<RegionResponse> = _regions
@@ -46,18 +47,17 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     }
 
     private fun loadMapConfig() {
-        val apiKey = BuildConfig.MAPTILER_KEY
-        _mapStyleUrl.value = "https://api.maptiler.com/maps/winter-v2/style.json?key=${apiKey}"
+        _mapStyleUrl.value = Style.OUTDOORS
         
-        _initialCameraPosition.value = CameraPosition.Builder()
-            .target(LatLng(47.26, 11.77))
+        _initialCameraPosition.value = CameraOptions.Builder()
+            .center(Point.fromLngLat(11.77, 47.26))
             .zoom(8.0)
             .build()
     }
 
     fun restoreState(lat: Double, lon: Double, zoom: Double, mode: VisualizationMode) {
-        _initialCameraPosition.value = CameraPosition.Builder()
-            .target(LatLng(lat, lon))
+        _initialCameraPosition.value = CameraOptions.Builder()
+            .center(Point.fromLngLat(lon, lat))
             .zoom(zoom)
             .build()
         

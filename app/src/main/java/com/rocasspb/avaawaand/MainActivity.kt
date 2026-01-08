@@ -10,9 +10,22 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.mapbox.geojson.Point
+import com.mapbox.maps.MapView
+import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.Style
+import com.mapbox.maps.extension.style.layers.addLayer
+import com.mapbox.maps.extension.style.layers.generated.RasterLayer
+import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.generated.ImageSource
+import com.mapbox.maps.plugin.attribution.attribution
+import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.logo.logo
+import com.mapbox.maps.plugin.scalebar.scalebar
 import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.RasterGenerator
 import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
@@ -21,22 +34,11 @@ import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.maplibre.android.MapLibre
-import org.maplibre.android.geometry.LatLng
-import org.maplibre.android.geometry.LatLngQuad
-import org.maplibre.android.maps.MapLibreMap
-import org.maplibre.android.maps.MapView
-import org.maplibre.android.maps.OnMapReadyCallback
-import org.maplibre.android.maps.Style
-import org.maplibre.android.style.layers.PropertyFactory
-import org.maplibre.android.style.layers.RasterLayer
-import org.maplibre.android.style.sources.ImageSource
-import androidx.core.content.edit
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback {
+class MainActivity : AppCompatActivity() {
 
     private var mapView: MapView? = null
-    private var mapLibreMap: MapLibreMap? = null
+    private var mapboxMap: MapboxMap? = null
     private val viewModel: MainViewModel by viewModels()
     private lateinit var fabMode: FloatingActionButton
     private lateinit var panelModeSelection: CardView
@@ -56,15 +58,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Init MapLibre
-        MapLibre.getInstance(this)
-
         setContentView(R.layout.activity_main)
 
         mapView = findViewById(R.id.mapView)
-        mapView?.onCreate(savedInstanceState)
-        mapView?.getMapAsync(this)
+        mapboxMap = mapView?.getMapboxMap()
         
         // Restore state
         val prefs = getPreferences(MODE_PRIVATE)
@@ -82,6 +79,41 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
 
         setupViews()
         setupListeners()
+        
+        // Observe ViewModel for style URL
+        viewModel.mapStyleUrl.observe(this, Observer { styleUrl ->
+            mapboxMap?.loadStyleUri(styleUrl) { style ->
+                setupMapUiSettings()
+                
+                // Re-apply raster if rules exist and style changed
+                val rules = viewModel.generationRules.value
+                if (rules != null) {
+                    overlayRaster(rules, style)
+                }
+            }
+        })
+        
+        // Observe ViewModel for initial position
+        viewModel.initialCameraPosition.observe(this, Observer { options ->
+             if (options != null) {
+                 mapboxMap?.setCamera(options)
+             }
+        })
+        
+        // Observe generation rules
+        viewModel.generationRules.observe(this, Observer { rules ->
+            mapboxMap?.getStyle { style ->
+                 overlayRaster(rules, style)
+            }
+        })
+        
+        // Using onMapIdle listener for performance
+        mapboxMap?.addOnMapIdleListener {
+             val rules = viewModel.generationRules.value ?: return@addOnMapIdleListener
+             mapboxMap?.getStyle { style ->
+                 overlayRaster(rules, style)
+             }
+        }
     }
 
     private fun setupViews() {
@@ -169,67 +201,27 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
         text.setTextColor(ContextCompat.getColor(this, R.color.blue_selected))
     }
 
-    override fun onMapReady(map: MapLibreMap) {
-        mapLibreMap = map
-
-        // Observe ViewModel for style URL
-        viewModel.mapStyleUrl.observe(this, Observer { styleUrl ->
-            map.setStyle(styleUrl) { style ->
-                setupMapUiSettings(map)
-
-                // Re-apply raster if rules exist and style changed
-                val rules = viewModel.generationRules.value
-                if (rules != null) {
-                    overlayRaster(rules, style)
-                }
-            }
-        })
-
-        // Observe ViewModel for initial position
-        viewModel.initialCameraPosition.observe(this, Observer { position ->
-            if (position != null) {
-                map.cameraPosition = position
-            }
-        })
-
-        // Observe generation rules
-        viewModel.generationRules.observe(this, Observer { rules ->
-            map.getStyle { style ->
-                overlayRaster(rules, style)
-            }
-        })
-
-        // Recalculate raster on camera idle (zoom/pan)
-        map.addOnCameraIdleListener {
-            val rules = viewModel.generationRules.value ?: return@addOnCameraIdleListener
-            map.getStyle { style ->
-                overlayRaster(rules, style)
-            }
-        }
-    }
-
-    private fun setupMapUiSettings(map: MapLibreMap) {
-        map.uiSettings.isCompassEnabled = true
-        map.uiSettings.isLogoEnabled = true
-        map.uiSettings.isAttributionEnabled = true
-        map.uiSettings.isRotateGesturesEnabled = true
-        map.uiSettings.isTiltGesturesEnabled = true
-        map.uiSettings.isZoomGesturesEnabled = true
-        map.uiSettings.isScrollGesturesEnabled = true
+    private fun setupMapUiSettings() {
+        mapView?.compass?.enabled = true
+        mapView?.scalebar?.enabled = true
+        mapView?.logo?.enabled = true
+        mapView?.attribution?.enabled = true
     }
 
     private fun overlayRaster(rules: List<GenerationRule>, style: Style) {
         if (rules.isEmpty()) return
 
-        val map = mapLibreMap ?: return
-        val visibleBounds = map.projection.visibleRegion.latLngBounds
+        val map = mapboxMap ?: return
+        val cameraState = map.cameraState
+        val bounds = map.coordinateBoundsForCamera(cameraState.toCameraOptions())
+        
         val renderBounds = GeometryUtils.Bounds(
-            visibleBounds.longitudeWest,
-            visibleBounds.longitudeEast,
-            visibleBounds.latitudeSouth,
-            visibleBounds.latitudeNorth
+            bounds.west(),
+            bounds.east(),
+            bounds.south(),
+            bounds.north()
         )
-        val zoom = map.cameraPosition.zoom
+        val zoom = cameraState.zoom
 
         lifecycleScope.launch(Dispatchers.Default) {
             val provider = TerrainRgbElevationProvider()
@@ -239,81 +231,58 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback {
             val bitmap = RasterGenerator.drawToBitmap(rules, renderBounds, provider) ?: return@launch
 
             withContext(Dispatchers.Main) {
-                if (style.isFullyLoaded) {
+                if (style.isStyleLoaded()) {
                     val sourceId = "avalanche-source"
                     val layerId = "avalanche-layer"
 
                     // Cleanup existing
-                    if (style.getSource(sourceId) != null) {
-                        style.removeLayer(layerId)
-                        style.removeSource(sourceId)
+                    if (style.styleSourceExists(sourceId)) {
+                        style.removeStyleLayer(layerId)
+                        style.removeStyleSource(sourceId)
                     }
 
-                    val quad = LatLngQuad(
-                        LatLng(renderBounds.maxLat, renderBounds.minLng),
-                        LatLng(renderBounds.maxLat, renderBounds.maxLng),
-                        LatLng(renderBounds.minLat, renderBounds.maxLng),
-                        LatLng(renderBounds.minLat, renderBounds.minLng)
+                    val coords = listOf(
+                        listOf(renderBounds.minLng, renderBounds.maxLat), // Top Left
+                        listOf(renderBounds.maxLng, renderBounds.maxLat), // Top Right
+                        listOf(renderBounds.maxLng, renderBounds.minLat), // Bottom Right
+                        listOf(renderBounds.minLng, renderBounds.minLat)  // Bottom Left
                     )
-
-                    val source = ImageSource(sourceId, quad, bitmap)
-                    style.addSource(source)
+                    
+                    val file = java.io.File(cacheDir, "overlay.png")
+                    val out = java.io.FileOutputStream(file)
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
+                    out.flush()
+                    out.close()
+                    
+                    val imageSource = ImageSource.Builder(sourceId)
+                        .url(file.toURI().toString())
+                        .coordinates(coords)
+                        .build()
+                        
+                    style.addSource(imageSource)
 
                     val layer = RasterLayer(layerId, sourceId)
-                    layer.setProperties(
-                        PropertyFactory.rasterOpacity(0.7f)
-                    )
+                    layer.rasterOpacity(0.7)
                     style.addLayer(layer)
                 }
             }
         }
     }
-
-    override fun onStart() {
-        super.onStart()
-        mapView?.onStart()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        mapView?.onResume()
-    }
-
+    
     override fun onPause() {
         super.onPause()
-        mapView?.onPause()
         
-        val map = mapLibreMap ?: return
-        val camera = map.cameraPosition
-        val target = camera.target ?: return
+        val map = mapboxMap ?: return
+        val camera = map.cameraState
+        val target = camera.center
         val mode = viewModel.visualizationMode.value ?: VisualizationMode.BULLETIN
         
         val prefs = getPreferences(MODE_PRIVATE)
         prefs.edit {
-            putFloat("lat", target.latitude.toFloat())
-            putFloat("lon", target.longitude.toFloat())
+            putFloat("lat", target.latitude().toFloat())
+            putFloat("lon", target.longitude().toFloat())
             putFloat("zoom", camera.zoom.toFloat())
             putString("mode", mode.name)
         }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        mapView?.onStop()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        mapView?.onSaveInstanceState(outState)
-    }
-
-    override fun onLowMemory() {
-        super.onLowMemory()
-        mapView?.onLowMemory()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mapView?.onDestroy()
     }
 }
