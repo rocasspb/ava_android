@@ -116,19 +116,20 @@ object RasterGenerator {
                         if (rule.applySteepnessLogic && slope != null) {
                             val highColor = parseColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
                             val considerableColor = parseColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
-                            
+                            if(slope > 50) continue
+
                             if (effectiveDlValue >= 4) {
-                                finalColor = if (slope > 30) highColor else considerableColor
+                                finalColor = if (slope >= 30) highColor else considerableColor
                             } else if (effectiveDlValue == 3) {
-                                if (slope > 35) finalColor = highColor
-                                else if (slope > 30) finalColor = considerableColor
+                                if (slope >= 35) finalColor = highColor
+                                else if (slope >= 30) finalColor = considerableColor
                                 else continue // Skip
                             } else if (effectiveDlValue == 2) {
-                                if (slope > 40) finalColor = highColor
-                                else if (slope > 35) finalColor = considerableColor
+                                if (slope >= 40) finalColor = highColor
+                                else if (slope >= 35) finalColor = considerableColor
                                 else continue // Skip
                             } else if (effectiveDlValue == 1) {
-                                if (slope > 40) finalColor = considerableColor
+                                if (slope >= 40) finalColor = considerableColor
                                 else continue // Skip
                             }
                         }
