@@ -47,7 +47,7 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     }
 
     private fun loadMapConfig() {
-        _mapStyleUrl.value = Style.OUTDOORS
+        _mapStyleUrl.value = Style.SATELLITE
         
         _initialCameraPosition.value = CameraOptions.Builder()
             .center(Point.fromLngLat(11.77, 47.26))

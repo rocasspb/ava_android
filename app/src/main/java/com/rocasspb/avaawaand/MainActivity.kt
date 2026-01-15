@@ -21,11 +21,17 @@ import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer
+import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
+import com.mapbox.maps.extension.style.projection.generated.projection
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.ImageSource
+import com.mapbox.maps.extension.style.sources.generated.rasterDemSource
 import com.mapbox.maps.extension.style.sources.updateImage
+import com.mapbox.maps.extension.style.style
+import com.mapbox.maps.extension.style.terrain.generated.terrain
 import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.maps.toCameraOptions
@@ -86,10 +92,19 @@ class MainActivity : AppCompatActivity() {
         
         // Observe ViewModel for style URL
         viewModel.mapStyleUrl.observe(this, Observer { styleUrl ->
-            mapboxMap?.loadStyleUri(styleUrl) { style ->
+            mapboxMap?.loadStyle(
+                styleExtension = style(Style.STANDARD_SATELLITE) {
+                    val dem_source_id = "dem-source"
+                    +rasterDemSource(dem_source_id) {
+                        url("mapbox://mapbox.mapbox-terrain-dem-v1")
+                        // 514 specifies padded DEM tile and provides better performance than 512 tiles.
+                        tileSize(514)
+                    }
+                    +terrain(dem_source_id)
+                    +projection(ProjectionName.GLOBE)
+                }
+            ) { style ->
                 setupMapUiSettings()
-                
-                // Re-apply raster if rules exist and style changed
                 val rules = viewModel.generationRules.value
                 if (rules != null) {
                     overlayRaster(rules, style)
@@ -210,6 +225,7 @@ class MainActivity : AppCompatActivity() {
         mapView?.scalebar?.enabled = true
         mapView?.logo?.enabled = true
         mapView?.attribution?.enabled = true
+        mapView?.gestures?.pitchEnabled = true
     }
 
     private fun overlayRaster(rules: List<GenerationRule>, style: Style) {
