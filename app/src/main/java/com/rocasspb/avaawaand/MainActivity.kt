@@ -23,6 +23,7 @@ import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.ImageSource
+import com.mapbox.maps.extension.style.sources.updateImage
 import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.compass.compass
 import com.mapbox.maps.plugin.logo.logo
@@ -251,18 +252,11 @@ class MainActivity : AppCompatActivity() {
                         listOf(renderBounds.minLng, renderBounds.minLat)  // Bottom Left
                     )
                     
-                    val file = java.io.File(cacheDir, "overlay.png")
-                    val out = java.io.FileOutputStream(file)
-                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, out)
-                    out.flush()
-                    out.close()
-                    
                     val imageSource = ImageSource.Builder(sourceId)
-                        .url(file.toURI().toString())
                         .coordinates(coords)
                         .build()
-                        
                     style.addSource(imageSource)
+                    imageSource.updateImage(bitmap)
 
                     val layer = RasterLayer(layerId, sourceId)
                     layer.rasterOpacity(0.7)
