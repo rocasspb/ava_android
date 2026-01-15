@@ -14,6 +14,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
@@ -26,6 +27,7 @@ import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.compass.compass
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
+import com.mapbox.maps.toCameraOptions
 import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.RasterGenerator
 import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
@@ -58,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MapboxOptions.accessToken=BuildConfig.MAPBOX_ACCESS_TOKEN
         setContentView(R.layout.activity_main)
 
         mapView = findViewById(R.id.mapView)
