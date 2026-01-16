@@ -19,7 +19,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.slider.RangeSlider
 import com.google.android.material.slider.Slider
 import com.mapbox.common.MapboxOptions
-import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
@@ -46,6 +45,7 @@ import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sliderElevation: RangeSlider
     private lateinit var sliderSteepness: Slider
     private lateinit var chipGroupAspects: ChipGroup
+
+    private var overlayJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -313,7 +315,8 @@ class MainActivity : AppCompatActivity() {
         )
         val zoom = cameraState.zoom
 
-        lifecycleScope.launch(Dispatchers.Default) {
+        overlayJob?.cancel()
+        overlayJob = lifecycleScope.launch(Dispatchers.Default) {
             val provider = TerrainRgbElevationProvider()
             provider.prepare(renderBounds, zoom)
 

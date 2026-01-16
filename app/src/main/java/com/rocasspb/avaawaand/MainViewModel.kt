@@ -19,6 +19,7 @@ import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.toString
 
@@ -47,6 +48,8 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
     private val _customModeParams = MutableLiveData<CustomModeParams>(CustomModeParams())
     val customModeParams: LiveData<CustomModeParams> = _customModeParams
+
+    private var calculationJob: Job? = null
 
     init {
         // Load initial data
@@ -107,7 +110,8 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     }
     
     fun calculateRules() {
-         viewModelScope.launch(Dispatchers.Default) {
+         calculationJob?.cancel()
+         calculationJob = viewModelScope.launch(Dispatchers.Default) {
              val bulletins = _avalancheData.value ?: return@launch
              val regions = _regions.value ?: return@launch
              val currentMode = _visualizationMode.value ?: VisualizationMode.BULLETIN
