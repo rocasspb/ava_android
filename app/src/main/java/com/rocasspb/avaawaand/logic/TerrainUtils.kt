@@ -1,6 +1,5 @@
 package com.rocasspb.avaawaand.logic
 
-import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlin.math.*
 
@@ -54,6 +53,7 @@ object TerrainUtils {
         val aspect = when {
             bearing !in 22.5..<337.5 -> "N"
             bearing in 22.5..<67.5 -> "NE"
+            bearing in 67.5..<112.5 -> "E"
             bearing in 112.5..<157.5 -> "SE"
             bearing in 157.5..<202.5 -> "S"
             bearing in 202.5..<247.5 -> "SW"

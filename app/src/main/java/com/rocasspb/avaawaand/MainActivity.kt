@@ -34,6 +34,8 @@ import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.terrain.generated.terrain
 import com.mapbox.maps.plugin.attribution.attribution
 import com.mapbox.maps.plugin.compass.compass
+import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
@@ -48,6 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
 
@@ -74,6 +77,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sliderElevation: RangeSlider
     private lateinit var sliderSteepness: Slider
     private lateinit var chipGroupAspects: ChipGroup
+
+    private lateinit var cardPointInfo: CardView
+    private lateinit var textPointInfo: TextView
 
     private var overlayJob: Job? = null
 
@@ -138,6 +144,20 @@ class MainActivity : AppCompatActivity() {
             }
         })
         
+        // Observe point info
+        viewModel.pointInfo.observe(this, Observer { info ->
+            if (info != null) {
+                textPointInfo.text = String.format(
+                    Locale.US,
+                    "Elev: %dm\nSlope: %.1f°\nAspect: %s",
+                    info.elevation, info.slope, info.aspect
+                )
+                cardPointInfo.visibility = View.VISIBLE
+            } else {
+                cardPointInfo.visibility = View.GONE
+            }
+        })
+        
         // Using onMapIdle listener for performance
         mapboxMap?.addOnMapIdleListener {
              val rules = viewModel.generationRules.value ?: return@addOnMapIdleListener
@@ -171,6 +191,9 @@ class MainActivity : AppCompatActivity() {
         sliderElevation = findViewById(R.id.sliderElevation)
         sliderSteepness = findViewById(R.id.sliderSteepness)
         chipGroupAspects = findViewById(R.id.chipGroupAspects)
+
+        cardPointInfo = findViewById(R.id.cardPointInfo)
+        textPointInfo = findViewById(R.id.textPointInfo)
 
         // Set label formatters to show only integer values
         sliderElevation.setLabelFormatter { value -> value.toInt().toString() }
@@ -233,6 +256,16 @@ class MainActivity : AppCompatActivity() {
             chip?.setOnCheckedChangeListener { _, _ ->
                 updateViewModelCustomParams()
             }
+        }
+
+        mapboxMap?.addOnMapLongClickListener { point ->
+            viewModel.getPointInfo(point, mapboxMap?.cameraState?.zoom ?: 12.0)
+            true
+        }
+
+        mapboxMap?.addOnMapClickListener {
+            viewModel.clearPointInfo()
+            false
         }
     }
     

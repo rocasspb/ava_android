@@ -15,6 +15,8 @@ import com.rocasspb.avaawaand.logic.AvalancheLogic
 import com.rocasspb.avaawaand.logic.CustomModeParams
 import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.RuleProperties
+import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
+import com.rocasspb.avaawaand.logic.TerrainUtils
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
@@ -22,7 +24,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.max
-import kotlin.toString
 
 class MainViewModel(private val repository: MainRepository = MainRepositoryImpl()) : ViewModel() {
 
@@ -50,7 +51,18 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     private val _customModeParams = MutableLiveData<CustomModeParams>(CustomModeParams())
     val customModeParams: LiveData<CustomModeParams> = _customModeParams
 
+    private val _pointInfo = MutableLiveData<PointInfo?>()
+    val pointInfo: LiveData<PointInfo?> = _pointInfo
+
+    data class PointInfo(
+        val elevation: Int,
+        val slope: Double,
+        val aspect: String
+    )
+
     private var calculationJob: Job? = null
+    private var pointInfoJob: Job? = null
+    private val elevationProvider = TerrainRgbElevationProvider()
 
     init {
         // Load initial data
@@ -145,5 +157,32 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
                  _generationRules.postValue(rules)
              }
          }
+    }
+
+    fun getPointInfo(point: Point, zoom: Double) {
+        pointInfoJob?.cancel()
+        pointInfoJob = viewModelScope.launch(Dispatchers.Default) {
+            val geoPoint = GeometryUtils.Point(point.longitude(), point.latitude())
+            
+            // Prepare elevation provider for the small area around the point
+            val bounds = GeometryUtils.Bounds(
+                point.longitude() - 0.001,
+                point.longitude() + 0.001,
+                point.latitude() - 0.001,
+                point.latitude() + 0.001
+            )
+            elevationProvider.prepare(bounds, zoom)
+
+            val elevation = elevationProvider.getElevation(geoPoint) ?: return@launch
+            val metrics = TerrainUtils.calculateTerrainMetrics(geoPoint) { p ->
+                elevationProvider.getElevation(p)
+            } ?: return@launch
+
+            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect))
+        }
+    }
+
+    fun clearPointInfo() {
+        _pointInfo.value = null
     }
 }
