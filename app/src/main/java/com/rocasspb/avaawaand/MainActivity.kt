@@ -172,6 +172,10 @@ class MainActivity : AppCompatActivity() {
         sliderSteepness = findViewById(R.id.sliderSteepness)
         chipGroupAspects = findViewById(R.id.chipGroupAspects)
 
+        // Set label formatters to show only integer values
+        sliderElevation.setLabelFormatter { value -> value.toInt().toString() }
+        sliderSteepness.setLabelFormatter { value -> value.toInt().toString() }
+
         // Observe visualization mode to update UI
         viewModel.visualizationMode.observe(this, Observer { mode ->
              updateModeSelectionUi(mode)

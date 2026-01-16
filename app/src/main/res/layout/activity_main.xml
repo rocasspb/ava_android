@@ -193,6 +193,7 @@
                         android:id="@+id/sliderElevation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:stepSize="1.0"
                         android:valueFrom="0"
                         android:valueTo="5000"
                         app:values="@array/default_elevation_values" />
@@ -209,8 +210,9 @@
                         android:id="@+id/sliderSteepness"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:value="25"
-                        android:valueFrom="25"
+                        android:stepSize="1.0"
+                        android:value="30"
+                        android:valueFrom="30"
                         android:valueTo="45" />
 
                     <TextView

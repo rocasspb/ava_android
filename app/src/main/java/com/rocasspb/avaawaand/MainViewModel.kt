@@ -21,6 +21,7 @@ import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.math.max
 import kotlin.toString
 
 class MainViewModel(private val repository: MainRepository = MainRepositoryImpl()) : ViewModel() {
@@ -118,13 +119,13 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
              if(currentMode == VisualizationMode.CUSTOM) {
                  val customParams = _customModeParams.value ?: CustomModeParams()
-                 val rules = AvalancheConfig.STEEPNESS_THRESHOLDS.filter { it.minSlope >= customParams.minSlope }.map {
+                 val rules = AvalancheConfig.STEEPNESS_THRESHOLDS.map {
                      GenerationRule(
                          bounds = AvalancheConfig.EUREGIO_BOUNDS,
                          geometry = null,
                          minElev = customParams.minElev,
                          maxElev = customParams.maxElev,
-                         minSlope = it.minSlope,
+                         minSlope = max(it.minSlope, customParams.minSlope),
                          validAspects = customParams.aspects,
                          color = it.color,
                          properties = RuleProperties(
