@@ -20,7 +20,7 @@ object TerrainUtils {
      */
     fun calculateTerrainMetrics(
         point: GeometryUtils.Point,
-        queryElevation: (GeometryUtils.Point) -> Double?
+        queryElevation: (GeometryUtils.Point) -> Int?
     ): TerrainMetrics? {
         val lng = point.x
         val lat = point.y

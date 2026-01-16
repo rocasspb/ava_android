@@ -13,7 +13,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.slider.RangeSlider
+import com.google.android.material.slider.Slider
 import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.Point
 import com.mapbox.maps.MapView
@@ -35,6 +39,7 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.maps.toCameraOptions
+import com.rocasspb.avaawaand.logic.CustomModeParams
 import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.RasterGenerator
 import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
@@ -64,6 +69,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var bgCustom: FrameLayout
     private lateinit var iconCustom: ImageView
     private lateinit var textCustom: TextView
+    
+    private lateinit var customControls: LinearLayout
+    private lateinit var sliderElevation: RangeSlider
+    private lateinit var sliderSteepness: Slider
+    private lateinit var chipGroupAspects: ChipGroup
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,7 +81,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         mapView = findViewById(R.id.mapView)
-        mapboxMap = mapView?.getMapboxMap()
+        mapboxMap = mapView?.mapboxMap
         
         // Restore state
         val prefs = getPreferences(MODE_PRIVATE)
@@ -154,11 +164,27 @@ class MainActivity : AppCompatActivity() {
         bgCustom = findViewById(R.id.bgCustom)
         iconCustom = findViewById(R.id.iconCustom)
         textCustom = findViewById(R.id.textCustom)
+        
+        customControls = findViewById(R.id.customControls)
+        sliderElevation = findViewById(R.id.sliderElevation)
+        sliderSteepness = findViewById(R.id.sliderSteepness)
+        chipGroupAspects = findViewById(R.id.chipGroupAspects)
 
         // Observe visualization mode to update UI
         viewModel.visualizationMode.observe(this, Observer { mode ->
              updateModeSelectionUi(mode)
         })
+        
+        // Initializing chips
+        val aspects = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+        aspects.forEach { aspect ->
+            for (i in 0 until chipGroupAspects.childCount) {
+                val chip = chipGroupAspects.getChildAt(i) as? Chip
+                if (chip?.text == aspect) {
+                    chip.isChecked = true
+                }
+            }
+        }
     }
 
     private fun setupListeners() {
@@ -183,6 +209,47 @@ class MainActivity : AppCompatActivity() {
         optionCustom.setOnClickListener {
             viewModel.setVisualizationMode(VisualizationMode.CUSTOM)
         }
+        
+        sliderElevation.addOnChangeListener { slider, value, fromUser ->
+            if (fromUser) {
+                updateViewModelCustomParams()
+            }
+        }
+        
+        sliderSteepness.addOnChangeListener { slider, value, fromUser ->
+            if (fromUser) {
+                updateViewModelCustomParams()
+            }
+        }
+        
+        for (i in 0 until chipGroupAspects.childCount) {
+            val chip = chipGroupAspects.getChildAt(i) as? Chip
+            chip?.setOnCheckedChangeListener { _, _ ->
+                updateViewModelCustomParams()
+            }
+        }
+    }
+    
+    private fun updateViewModelCustomParams() {
+        val elevationValues = sliderElevation.values
+        val minElev = elevationValues[0].toInt()
+        val maxElev = elevationValues[1].toInt()
+        val minSlope = sliderSteepness.value.toInt()
+        
+        val selectedAspects = mutableListOf<String>()
+        for (i in 0 until chipGroupAspects.childCount) {
+            val chip = chipGroupAspects.getChildAt(i) as? Chip
+            if (chip != null && chip.isChecked) {
+                selectedAspects.add(chip.text.toString())
+            }
+        }
+        
+        viewModel.updateCustomParams(CustomModeParams(
+            minElev = minElev,
+            maxElev = maxElev,
+            minSlope = minSlope,
+            aspects = selectedAspects
+        ))
     }
 
     private fun updateModeSelectionUi(mode: VisualizationMode) {
@@ -196,14 +263,17 @@ class MainActivity : AppCompatActivity() {
             VisualizationMode.BULLETIN -> {
                 highlightOptionUi(bgBulletin, iconBulletin, textBulletin)
                 fabMode.setImageResource(R.drawable.ic_bulletin)
+                customControls.visibility = View.GONE
             }
             VisualizationMode.RISK -> {
                 highlightOptionUi(bgRisk, iconRisk, textRisk)
                 fabMode.setImageResource(R.drawable.ic_landscape)
+                customControls.visibility = View.GONE
             }
             VisualizationMode.CUSTOM -> {
                 highlightOptionUi(bgCustom, iconCustom, textCustom)
                 fabMode.setImageResource(R.drawable.ic_custom)
+                customControls.visibility = View.VISIBLE
             }
         }
     }

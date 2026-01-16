@@ -14,14 +14,14 @@ import org.robolectric.annotation.Config
 @Config(sdk = [33])
 class RasterGeneratorTest {
 
-    private class ConstantElevationProvider(val elevation: Double) : ElevationProvider {
-        override fun getElevation(point: GeometryUtils.Point): Double = elevation
+    private class ConstantElevationProvider(val elevation: Int) : ElevationProvider {
+        override fun getElevation(point: GeometryUtils.Point): Int = elevation
     }
 
     @Test
     fun `drawToBitmap returns null for invalid bounds`() {
         val bounds = GeometryUtils.Bounds(10.0, 10.0, 45.0, 45.0)
-        val bitmap = RasterGenerator.drawToBitmap(emptyList(), bounds, ConstantElevationProvider(1000.0))
+        val bitmap = RasterGenerator.drawToBitmap(emptyList(), bounds, ConstantElevationProvider(1000))
         assertNull(bitmap)
     }
 
@@ -33,8 +33,8 @@ class RasterGeneratorTest {
         val rule = GenerationRule(
             bounds = ruleBounds,
             geometry = null,
-            minElev = 500.0,
-            maxElev = 2000.0,
+            minElev = 500,
+            maxElev = 2000,
             color = "#FF0000",
             properties = RuleProperties(dangerLevel = "3")
         )
@@ -42,7 +42,7 @@ class RasterGeneratorTest {
         val bitmap = RasterGenerator.drawToBitmap(
             listOf(rule),
             bounds,
-            ConstantElevationProvider(1000.0)
+            ConstantElevationProvider(1000)
         )
         
         assertNotNull(bitmap)
@@ -56,8 +56,8 @@ class RasterGeneratorTest {
         val rule = GenerationRule(
             bounds = bounds,
             geometry = null,
-            minElev = 2000.0,
-            maxElev = 3000.0,
+            minElev = 2000,
+            maxElev = 3000,
             color = "#FF0000",
             properties = RuleProperties(dangerLevel = "3")
         )
@@ -66,7 +66,7 @@ class RasterGeneratorTest {
         val bitmap = RasterGenerator.drawToBitmap(
             listOf(rule),
             bounds,
-            ConstantElevationProvider(1000.0)
+            ConstantElevationProvider(1000)
         )
         
         assertNotNull(bitmap)
@@ -80,8 +80,8 @@ class RasterGeneratorTest {
         val rule = GenerationRule(
             bounds = bounds,
             geometry = null,
-            minElev = 0.0,
-            maxElev = 4000.0,
+            minElev = 0,
+            maxElev = 4000,
             validAspects = listOf("N"),
             color = "#FF0000",
             properties = RuleProperties(dangerLevel = "low") // Danger 1 -> skip if wrong aspect
@@ -89,10 +89,10 @@ class RasterGeneratorTest {
         
         // Elevation provider that returns a north-facing slope
         val northFacingProvider = object : ElevationProvider {
-            override fun getElevation(point: GeometryUtils.Point): Double {
+            override fun getElevation(point: GeometryUtils.Point): Int {
                 // North is +lat. If elevation decreases as we go North, aspect is North.
                 // TerrainUtils uses offset 0.0001
-                return 1000.0 - (point.y - 47.25) * 1000.0
+                return (1000 - (point.y - 47) * 1000).toInt()
             }
         }
         
@@ -114,19 +114,19 @@ class RasterGeneratorTest {
         val rule = GenerationRule(
             bounds = bounds,
             geometry = null,
-            minElev = 0.0,
-            maxElev = 4000.0,
+            minElev = 0,
+            maxElev = 4000,
             applySteepnessLogic = true,
             color = "#FF9900", // Orange for Considerable
             properties = RuleProperties(dangerLevel = "considerable")
         )
 
         val steepProvider = object : ElevationProvider {
-            override fun getElevation(point: GeometryUtils.Point): Double {
+            override fun getElevation(point: GeometryUtils.Point): Int {
                 // zN - zS = 0.0002 * k
                 // We want slope >= 35. tan(35) * 22.22 = 15.55
                 // 0.0002 * 80000 = 16.0
-                return 1000.0 + (point.y - 47.25) * 80000.0
+                return (1000.0 + (point.y - 47.25) * 80000.0).toInt()
             }
         }
 

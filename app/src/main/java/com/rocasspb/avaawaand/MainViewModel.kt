@@ -12,10 +12,15 @@ import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.MainRepositoryImpl
 import com.rocasspb.avaawaand.data.RegionResponse
 import com.rocasspb.avaawaand.logic.AvalancheLogic
+import com.rocasspb.avaawaand.logic.CustomModeParams
 import com.rocasspb.avaawaand.logic.GenerationRule
+import com.rocasspb.avaawaand.logic.RuleProperties
 import com.rocasspb.avaawaand.logic.VisualizationMode
+import com.rocasspb.avaawaand.utils.AvalancheConfig
+import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.toString
 
 class MainViewModel(private val repository: MainRepository = MainRepositoryImpl()) : ViewModel() {
 
@@ -39,6 +44,9 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
     private val _visualizationMode = MutableLiveData<VisualizationMode>(VisualizationMode.BULLETIN)
     val visualizationMode: LiveData<VisualizationMode> = _visualizationMode
+
+    private val _customModeParams = MutableLiveData<CustomModeParams>(CustomModeParams())
+    val customModeParams: LiveData<CustomModeParams> = _customModeParams
 
     init {
         // Load initial data
@@ -90,17 +98,47 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
             calculateRules()
         }
     }
+
+    fun updateCustomParams(params: CustomModeParams) {
+        _customModeParams.value = params
+        if (_visualizationMode.value == VisualizationMode.CUSTOM) {
+            calculateRules()
+        }
+    }
     
     fun calculateRules() {
          viewModelScope.launch(Dispatchers.Default) {
              val bulletins = _avalancheData.value ?: return@launch
              val regions = _regions.value ?: return@launch
              val currentMode = _visualizationMode.value ?: VisualizationMode.BULLETIN
-             
-             val bands = AvalancheLogic.processRegionElevations(bulletins)
-             val rules = AvalancheLogic.generateRules(bands, regions.features, currentMode)
-             
-             _generationRules.postValue(rules)
+
+             if(currentMode == VisualizationMode.CUSTOM) {
+                 val customParams = _customModeParams.value ?: CustomModeParams()
+                 val rules = AvalancheConfig.STEEPNESS_THRESHOLDS.filter { it.minSlope >= customParams.minSlope }.map {
+                     GenerationRule(
+                         bounds = AvalancheConfig.EUREGIO_BOUNDS,
+                         geometry = null,
+                         minElev = customParams.minElev,
+                         maxElev = customParams.maxElev,
+                         minSlope = it.minSlope,
+                         validAspects = customParams.aspects,
+                         color = it.color,
+                         properties = RuleProperties(
+                             steepness = it.label
+                         )
+                     )
+                 }
+
+                 _generationRules.postValue(rules)
+             } else {
+                 val bands = AvalancheLogic.processRegionElevations(bulletins)
+                 val rules = AvalancheLogic.generateRules(
+                     bands,
+                     regions.features,
+                     currentMode
+                 )
+                 _generationRules.postValue(rules)
+             }
          }
     }
 }

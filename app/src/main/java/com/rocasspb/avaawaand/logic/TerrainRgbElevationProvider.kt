@@ -86,7 +86,7 @@ class TerrainRgbElevationProvider : ElevationProvider {
         }
     }
 
-    override fun getElevation(point: GeometryUtils.Point): Double? {
+    override fun getElevation(point: GeometryUtils.Point): Int? {
         val lng = point.x
         val lat = point.y
         
@@ -110,12 +110,12 @@ class TerrainRgbElevationProvider : ElevationProvider {
         val h11 = getValue(tX, tY, x0 + 1, y0 + 1)
         
         if (h00 == null || h10 == null || h01 == null || h11 == null) {
-            return h00 ?: h10 ?: h01 ?: h11
+            return (h00 ?: h10 ?: h01 ?: h11)?.toInt()
         }
         
         val h0 = h00 * (1 - dx) + h10 * dx
         val h1 = h01 * (1 - dx) + h11 * dx
-        return h0 * (1 - dy) + h1 * dy
+        return (h0 * (1 - dy) + h1 * dy).toInt()
     }
     
     private fun getValue(tx: Int, ty: Int, x: Int, y: Int): Double? {

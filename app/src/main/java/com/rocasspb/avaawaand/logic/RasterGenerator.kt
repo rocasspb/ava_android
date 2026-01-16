@@ -11,7 +11,7 @@ import kotlin.math.min
 import androidx.core.graphics.createBitmap
 
 interface ElevationProvider {
-    fun getElevation(point: GeometryUtils.Point): Double?
+    fun getElevation(point: GeometryUtils.Point): Int?
 }
 
 object RasterGenerator {
@@ -43,8 +43,8 @@ object RasterGenerator {
 
         val bitmap = createBitmap(safeWidth, safeHeight)
         val pixels = IntArray(safeWidth * safeHeight)
-        val elevationCache = mutableMapOf<String, Double?>()
-        fun getElev(p: GeometryUtils.Point): Double? {
+        val elevationCache = mutableMapOf<String, Int?>()
+        fun getElev(p: GeometryUtils.Point): Int? {
             val key = "${p.x},${p.y}"
             return elevationCache.getOrPut(key) { elevationProvider.getElevation(p) }
         }

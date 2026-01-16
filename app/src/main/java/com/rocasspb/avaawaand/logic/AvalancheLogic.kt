@@ -75,7 +75,7 @@ object AvalancheLogic {
                              bands.add(ElevationBand(
                                 regionID = region.id,
                                 dangerLevel = maxDanger.mainValue,
-                                minElev = 0.0,
+                                minElev = 0,
                                 maxElev = AvalancheConfig.DEFAULT_MAX_ELEVATION,
                                 validAspects = null,
                                 avalancheProblems = emptyList(),
@@ -89,13 +89,13 @@ object AvalancheLogic {
         return bands
     }
 
-    private fun parseElevation(value: String?, isMax: Boolean = false): Double {
-        if (value == null) return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0.0
-        val v = value.toDoubleOrNull()
+    private fun parseElevation(value: String?, isMax: Boolean = false): Int {
+        if (value == null) return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0
+        val v = value.toIntOrNull()
         if (v != null) return v
         if(value.lowercase() == "treeline") return AvalancheConfig.TREELINE_ELEVATION
         println("Invalid elevation value: $value")
-        return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0.0
+        return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0
     }
 
     private fun getMaxDanger(ratings: List<DangerRating>): DangerRating? {
@@ -113,7 +113,7 @@ object AvalancheLogic {
         return maxRating
     }
     
-    fun adjustElevationForTreeline(currentMin: Double, currentMax: Double, problems: List<AvalancheProblem>): Pair<Double, Double> {
+    fun adjustElevationForTreeline(currentMin: Int, currentMax: Int, problems: List<AvalancheProblem>): Pair<Int, Int> {
         var min = currentMin
         var max = currentMax
         
@@ -154,7 +154,7 @@ object AvalancheLogic {
                 geometry = feature.geometry,
                 minElev = ruleMin,
                 maxElev = ruleMax,
-                minSlope = if (visualizationMode == VisualizationMode.BULLETIN) null else 30.0,
+                minSlope = if (visualizationMode == VisualizationMode.BULLETIN) null else 30,
                 applySteepnessLogic = useAspectAndElevation,
                 validAspects = if (useAspectAndElevation) band.validAspects else null,
                 color = color,
