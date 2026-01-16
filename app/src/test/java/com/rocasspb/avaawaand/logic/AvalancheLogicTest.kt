@@ -42,36 +42,11 @@ class AvalancheLogicTest {
         
         // logic: 
         // rMin=2000, rMax=4000.
-        // Problem pMin=0, pMax=5000. Overlaps.
+        // Problem pMin=1000, pMax=5000. Overlaps.
         // Union logic:
-        // unionMin starts at rMax(4000). min(4000, 0) -> 0.
+        // unionMin starts at rMax(4000). min(4000, 1000) -> 1000.
         // unionMax starts at rMin(2000). max(2000, 5000) -> 5000.
-        // Final band: 0 - 5000.
-        
-        // Wait, the union logic expands the band to the problem size?
-        // My implementation:
-        // var unionMin = rMax
-        // var unionMax = rMin
-        // matchingProblems.forEach { ... unionMin = min(unionMin, pMin) ... }
-        // rMin = unionMin
-        
-        // If the intention is to intersect, the logic is weird.
-        // In TS:
-        // var minElev = rMax; var maxElev = rMin;
-        // matchingProblems.forEach ...
-        // minElev = Math.min(minElev, pMin);
-        // maxElev = Math.max(maxElev, pMax);
-        // rMin = minElev; rMax = maxElev;
-        
-        // This calculates the Union of all matching problems' elevations.
-        // AND then assigns it to rMin/rMax.
-        // So effectively, the band becomes the Union of problems, IGNORING the original DangerRating elevation (except that we filtered problems based on overlap with it).
-        
-        // So in this test case:
-        // DangerRating 2000-4000.
-        // Problem 0-5000.
-        // They overlap.
-        // Result band becomes 0-5000.
+        // Final band: 1000 - 5000.
         
         assertEquals(1, bands.size)
         assertEquals("testRegion", bands[0].regionID)
@@ -170,5 +145,63 @@ class AvalancheLogicTest {
         
         assertEquals(2000.0, min, 0.01)
         assertEquals(3000.0, max, 0.01)
+    }
+
+    @Test
+    fun `processRegionElevations handles mixed treeline and numerical elevation bands`() {
+        val region = Region("region1", "Region 1")
+        
+        // Danger rating from treeline up (2000 to 4000)
+        val dangerRating = DangerRating("3", null, Elevation("treeline", null))
+        
+        // Problem 1: from treeline to 3000
+        val problem1 = AvalancheProblem(
+            problemType = "wind-slab",
+            elevation = Elevation("treeline", "3000"),
+            validTimePeriod = null,
+            snowpackStability = null,
+            frequency = null,
+            avalancheSize = null,
+            aspects = listOf("N", "NE")
+        )
+        
+        // Problem 2: numerical band 2500 to 3500
+        val problem2 = AvalancheProblem(
+            problemType = "persistent-weak-layer",
+            elevation = Elevation("2500", "3500"),
+            validTimePeriod = null,
+            snowpackStability = null,
+            frequency = null,
+            avalancheSize = null,
+            aspects = listOf("W", "NW")
+        )
+        
+        val bulletin = AvalancheData(
+            bulletinID = "b1",
+            publicationTime = "",
+            validTime = ValidTime("", ""),
+            avalancheActivity = null,
+            snowpackStructure = null,
+            dangerRatings = listOf(dangerRating),
+            avalancheProblems = listOf(problem1, problem2),
+            tendency = null,
+            weatherForecast = null,
+            weatherReview = null,
+            regions = listOf(region)
+        )
+
+        val bands = AvalancheLogic.processRegionElevations(listOf(bulletin))
+        
+        // Danger: 2000 - 4000 (treeline is 2000, null max is 4000)
+        // Problem 1: 2000 - 3000 (overlaps)
+        // Problem 2: 2500 - 3500 (overlaps)
+        // Union min: min(2000, 2500) = 2000
+        // Union max: max(3000, 3500) = 3500
+        
+        assertEquals(1, bands.size)
+        assertEquals(2000.0, bands[0].minElev, 0.01)
+        assertEquals(3500.0, bands[0].maxElev, 0.01)
+        val expectedAspects = listOf("N", "NE", "W", "NW")
+        assertEquals(expectedAspects.sorted(), bands[0].validAspects?.sorted())
     }
 }

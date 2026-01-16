@@ -93,7 +93,8 @@ object AvalancheLogic {
         if (value == null) return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0.0
         val v = value.toDoubleOrNull()
         if (v != null) return v
-        //TODO  Handle "treeline" etc if needed, though usually handled in adjustElevationForTreeline later or here?
+        if(value.lowercase() == "treeline") return AvalancheConfig.TREELINE_ELEVATION
+        println("Invalid elevation value: $value")
         return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0.0
     }
 

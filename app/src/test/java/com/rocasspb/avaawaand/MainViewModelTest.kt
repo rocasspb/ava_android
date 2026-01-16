@@ -2,6 +2,7 @@ package com.rocasspb.avaawaand
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.gson.Gson
+import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.AvalancheResponse
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.RegionResponse
@@ -47,11 +48,7 @@ class MainViewModelTest {
         val styleUrl = viewModel.mapStyleUrl.value
 
         assertNotNull(styleUrl)
-
-        assert(styleUrl!!.startsWith("https://api.maptiler.com/maps/winter-v2/style.json?key="))
-
-        val expectedKey = BuildConfig.MAPTILER_KEY
-        assertEquals("https://api.maptiler.com/maps/winter-v2/style.json?key=$expectedKey", styleUrl)
+        assertEquals(Style.SATELLITE, styleUrl)
 
         val position = viewModel.initialCameraPosition.value
         assertNotNull(position)

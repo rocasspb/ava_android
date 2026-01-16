@@ -46,7 +46,7 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
         fetchData()
     }
 
-    private fun loadMapConfig() {
+    fun loadMapConfig() {
         _mapStyleUrl.value = Style.SATELLITE
         
         _initialCameraPosition.value = CameraOptions.Builder()
