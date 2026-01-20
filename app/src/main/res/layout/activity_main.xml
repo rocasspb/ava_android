@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="12dp"
-        android:contentDescription="Switch Map Style"
+        android:contentDescription="@string/switch_map_style"
         android:src="@drawable/ic_layers"
         app:backgroundTint="@color/white"
         app:fabSize="mini"
@@ -106,6 +106,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
+                    android:baselineAligned="false"
                     android:orientation="horizontal"
                     app:layout_constraintTop_toBottomOf="@+id/btnClosePanel">
 
@@ -228,7 +229,7 @@
                         android:id="@+id/labelElevation"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Elevation Range (m)"
+                        android:text="@string/elevation_range_m"
                         android:textStyle="bold" />
 
                     <com.google.android.material.slider.RangeSlider
@@ -245,7 +246,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Min Steepness (degrees)"
+                        android:text="@string/min_steepness_degrees"
                         android:textStyle="bold" />
 
                     <com.google.android.material.slider.Slider
@@ -261,7 +262,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Aspects"
+                        android:text="@string/aspects"
                         android:textStyle="bold" />
 
                     <com.google.android.material.chip.ChipGroup
@@ -275,56 +276,56 @@
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="N" />
+                            android:text="@string/aspect_n" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipNE"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="NE" />
+                            android:text="@string/aspect_ne" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipE"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="E" />
+                            android:text="@string/aspect_e" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipSE"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="SE" />
+                            android:text="@string/aspect_se" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipS"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="S" />
+                            android:text="@string/aspect_s" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipSW"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="SW" />
+                            android:text="@string/aspect_sw" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipW"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="W" />
+                            android:text="@string/aspect_w" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipNW"
                             style="@style/Widget.MaterialComponents.Chip.Filter"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="NW" />
+                            android:text="@string/aspect_nw" />
                     </com.google.android.material.chip.ChipGroup>
 
                 </LinearLayout>

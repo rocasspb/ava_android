@@ -103,7 +103,7 @@ class MainActivity : AppCompatActivity() {
         val modeName = prefs.getString("mode", VisualizationMode.BULLETIN.name)
         val mode = try {
             VisualizationMode.valueOf(modeName ?: VisualizationMode.BULLETIN.name)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             VisualizationMode.BULLETIN
         }
         
@@ -163,8 +163,8 @@ class MainActivity : AppCompatActivity() {
         })
         
         // Using onMapIdle listener for performance
-        mapboxMap?.addOnMapIdleListener {
-             val rules = viewModel.generationRules.value ?: return@addOnMapIdleListener
+        mapboxMap?.subscribeMapIdle {
+             val rules = viewModel.generationRules.value ?: return@subscribeMapIdle
              mapboxMap?.getStyle { style ->
                  overlayRaster(rules, style)
              }
@@ -250,13 +250,13 @@ class MainActivity : AppCompatActivity() {
             viewModel.setVisualizationMode(VisualizationMode.CUSTOM)
         }
         
-        sliderElevation.addOnChangeListener { slider, value, fromUser ->
+        sliderElevation.addOnChangeListener { _, _, fromUser ->
             if (fromUser) {
                 updateViewModelCustomParams()
             }
         }
         
-        sliderSteepness.addOnChangeListener { slider, value, fromUser ->
+        sliderSteepness.addOnChangeListener { _, _, fromUser ->
             if (fromUser) {
                 updateViewModelCustomParams()
             }
