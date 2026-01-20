@@ -71,12 +71,20 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
     }
 
     fun loadMapConfig() {
-        _mapStyleUrl.value = Style.SATELLITE
+        _mapStyleUrl.value = Style.OUTDOORS
         
         _initialCameraPosition.value = CameraOptions.Builder()
             .center(Point.fromLngLat(11.77, 47.26))
             .zoom(8.0)
             .build()
+    }
+
+    fun toggleMapStyle() {
+        _mapStyleUrl.value = if (_mapStyleUrl.value == Style.OUTDOORS) {
+            Style.SATELLITE
+        } else {
+            Style.OUTDOORS
+        }
     }
 
     fun restoreState(lat: Double, lon: Double, zoom: Double, mode: VisualizationMode) {

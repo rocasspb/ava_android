@@ -61,6 +61,7 @@ class MainActivity : AppCompatActivity() {
     private var mapboxMap: MapboxMap? = null
     private val viewModel: MainViewModel by viewModels()
     private lateinit var fabMode: FloatingActionButton
+    private lateinit var fabLayers: FloatingActionButton
     private lateinit var panelModeSelection: CardView
     private lateinit var btnClosePanel: ImageView
     private lateinit var optionBulletin: LinearLayout
@@ -114,7 +115,7 @@ class MainActivity : AppCompatActivity() {
         // Observe ViewModel for style URL
         viewModel.mapStyleUrl.observe(this, Observer { styleUrl ->
             mapboxMap?.loadStyle(
-                styleExtension = style(Style.STANDARD_SATELLITE) {
+                styleExtension = style(styleUrl) {
                     val dem_source_id = "dem-source"
                     +rasterDemSource(dem_source_id) {
                         url("mapbox://mapbox.mapbox-terrain-dem-v1")
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupViews() {
         fabMode = findViewById(R.id.fabMode)
+        fabLayers = findViewById(R.id.fabLayers)
         panelModeSelection = findViewById(R.id.panelModeSelection)
         btnClosePanel = findViewById(R.id.btnClosePanel)
 
@@ -223,11 +225,17 @@ class MainActivity : AppCompatActivity() {
         fabMode.setOnClickListener {
             panelModeSelection.visibility = View.VISIBLE
             fabMode.hide()
+            fabLayers.hide()
+        }
+
+        fabLayers.setOnClickListener {
+            viewModel.toggleMapStyle()
         }
 
         btnClosePanel.setOnClickListener {
             panelModeSelection.visibility = View.GONE
             fabMode.show()
+            fabLayers.show()
         }
 
         optionBulletin.setOnClickListener {
