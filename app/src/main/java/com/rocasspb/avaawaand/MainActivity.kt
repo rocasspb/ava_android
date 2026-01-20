@@ -45,12 +45,15 @@ import com.rocasspb.avaawaand.logic.GenerationRule
 import com.rocasspb.avaawaand.logic.RasterGenerator
 import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
 import com.rocasspb.avaawaand.logic.VisualizationMode
+import com.rocasspb.avaawaand.utils.AvalancheConfig.MAX_DISTANCE_PITCHED
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import kotlin.math.max
+import kotlin.math.min
 
 class MainActivity : AppCompatActivity() {
 
@@ -344,11 +347,17 @@ class MainActivity : AppCompatActivity() {
         val cameraState = map.cameraState
         val bounds = map.coordinateBoundsForCamera(cameraState.toCameraOptions())
         
+        val center = cameraState.center
+        //in high-pitch scenarios, bounds appear enormous - therefore we need to cap to a
+        //reasonable distance for calculation. At low pitch it is not possible to have this problem.
+        //The parameters are arbitrary though
+        val maxDelta = if(cameraState.pitch > 30) MAX_DISTANCE_PITCHED else 10.0
+        
         val renderBounds = GeometryUtils.Bounds(
-            bounds.west(),
-            bounds.east(),
-            bounds.south(),
-            bounds.north()
+            max(bounds.west(), center.longitude() - maxDelta),
+            min(bounds.east(), center.longitude() + maxDelta),
+            max(bounds.south(), center.latitude() - maxDelta),
+            min(bounds.north(), center.latitude() + maxDelta)
         )
         val zoom = cameraState.zoom
 

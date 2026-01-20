@@ -4,9 +4,6 @@ import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlin.math.*
 
 object TerrainUtils {
-
-    // Offset in degrees used for slope calculation
-    // From sample: 0.0001 degrees
     private const val SLOPE_CALCULATION_OFFSET = 0.0001
     private const val METERS_PER_DEGREE = 111111.0
 
