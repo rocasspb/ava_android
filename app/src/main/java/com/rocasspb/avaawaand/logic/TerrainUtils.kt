@@ -1,13 +1,9 @@
 package com.rocasspb.avaawaand.logic
 
-import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlin.math.*
 
 object TerrainUtils {
-
-    // Offset in degrees used for slope calculation
-    // From sample: 0.0001 degrees
     private const val SLOPE_CALCULATION_OFFSET = 0.0001
     private const val METERS_PER_DEGREE = 111111.0
 
@@ -20,7 +16,7 @@ object TerrainUtils {
      */
     fun calculateTerrainMetrics(
         point: GeometryUtils.Point,
-        queryElevation: (GeometryUtils.Point) -> Double?
+        queryElevation: (GeometryUtils.Point) -> Int?
     ): TerrainMetrics? {
         val lng = point.x
         val lat = point.y
@@ -54,6 +50,7 @@ object TerrainUtils {
         val aspect = when {
             bearing !in 22.5..<337.5 -> "N"
             bearing in 22.5..<67.5 -> "NE"
+            bearing in 67.5..<112.5 -> "E"
             bearing in 112.5..<157.5 -> "SE"
             bearing in 157.5..<202.5 -> "S"
             bearing in 202.5..<247.5 -> "SW"

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AvaAwaAnd</string>
+    <string name="app_name">AvaAwa</string>
     <string name="mode_bulletin">Bulletin</string>
     <string name="mode_risk">Risk</string>
     <string name="mode_custom">Custom</string>
@@ -8,4 +8,16 @@
     <string name="icon_bulletin">Bulletin Icon</string>
     <string name="icon_risk">Risk Icon</string>
     <string name="icon_custom">Custom Icon</string>
+    <string name="aspect_nw">NW</string>
+    <string name="aspect_w">W</string>
+    <string name="aspect_sw">SW</string>
+    <string name="aspect_s">S</string>
+    <string name="aspect_se">SE</string>
+    <string name="aspect_e">E</string>
+    <string name="aspect_ne">NE</string>
+    <string name="aspect_n">N</string>
+    <string name="aspects">Aspects</string>
+    <string name="min_steepness_degrees">Min Steepness (degrees)</string>
+    <string name="elevation_range_m">Elevation Range (m)</string>
+    <string name="switch_map_style">Switch Map Style</string>
 </resources>

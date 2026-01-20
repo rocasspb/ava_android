@@ -17,8 +17,8 @@ class TerrainRgbElevationProvider : ElevationProvider {
 
     private val tileCache = ConcurrentHashMap<String, IntArray?>()
     private var currentTileZoom = 12
-    private val apiKey = BuildConfig.MAPTILER_KEY
-    private val baseUrl = "https://api.maptiler.com/tiles/terrain-rgb-v2"
+    private val accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN
+    private val baseUrl = "https://api.mapbox.com/v4/mapbox.terrain-rgb"
     private val TILE_SIZE = 512
 
     suspend fun prepare(bounds: GeometryUtils.Bounds, mapZoom: Double) = withContext(Dispatchers.IO) {
@@ -58,7 +58,7 @@ class TerrainRgbElevationProvider : ElevationProvider {
         val key = "$currentTileZoom/$x/$y"
         if (tileCache.containsKey(key)) return
 
-        val urlString = "$baseUrl/$currentTileZoom/$x/$y.png?key=$apiKey"
+        val urlString = "$baseUrl/$currentTileZoom/$x/$y@2x.pngraw?access_token=$accessToken"
         try {
             val url = URL(urlString)
             val connection = url.openConnection()
@@ -69,7 +69,7 @@ class TerrainRgbElevationProvider : ElevationProvider {
 
             if (bitmap != null) {
                 // Ensure dimensions match expectation or handle varying sizes
-                // Terrain-RGB v2 is 512x512
+                // Mapbox @2x tiles are 512x512, standard is 256x256
                 val width = bitmap.width
                 val height = bitmap.height
                 val pixels = IntArray(width * height)
@@ -86,7 +86,7 @@ class TerrainRgbElevationProvider : ElevationProvider {
         }
     }
 
-    override fun getElevation(point: GeometryUtils.Point): Double? {
+    override fun getElevation(point: GeometryUtils.Point): Int? {
         val lng = point.x
         val lat = point.y
         
@@ -110,12 +110,12 @@ class TerrainRgbElevationProvider : ElevationProvider {
         val h11 = getValue(tX, tY, x0 + 1, y0 + 1)
         
         if (h00 == null || h10 == null || h01 == null || h11 == null) {
-            return h00 ?: h10 ?: h01 ?: h11
+            return (h00 ?: h10 ?: h01 ?: h11)?.toInt()
         }
         
         val h0 = h00 * (1 - dx) + h10 * dx
         val h1 = h01 * (1 - dx) + h11 * dx
-        return h0 * (1 - dy) + h1 * dy
+        return (h0 * (1 - dy) + h1 * dy).toInt()
     }
     
     private fun getValue(tx: Int, ty: Int, x: Int, y: Int): Double? {
