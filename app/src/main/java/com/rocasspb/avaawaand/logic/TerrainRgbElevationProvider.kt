@@ -68,14 +68,11 @@ class TerrainRgbElevationProvider : ElevationProvider {
             inputStream.close()
 
             if (bitmap != null) {
-                // Ensure dimensions match expectation or handle varying sizes
-                // Mapbox @2x tiles are 512x512, standard is 256x256
                 val width = bitmap.width
                 val height = bitmap.height
                 val pixels = IntArray(width * height)
                 bitmap.getPixels(pixels, 0, width, 0, 0, width, height)
                 tileCache[key] = pixels
-                // Do not recycle if you plan to reuse, but here we only store pixels
                 bitmap.recycle()
             } else {
                 tileCache[key] = null
