@@ -5,8 +5,6 @@ import android.graphics.Color
 import android.util.Log
 import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
-import kotlin.math.ceil
-import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import androidx.core.graphics.createBitmap
@@ -39,116 +37,119 @@ object RasterGenerator {
 
         if (latRange <= 0 || lngRange <= 0) return null
 
-        val gridSpacingDeg = max(latRange, lngRange) / AvalancheConfig.GRID_POINTS_DENSITY.toDouble()
+        val gridSpacingDegLat = latRange / AvalancheConfig.GRID_POINTS_DENSITY.toDouble()
+        val gridSpacingDegLon = lngRange / AvalancheConfig.GRID_POINTS_DENSITY.toDouble()
 
-        val width = ceil(lngRange / gridSpacingDeg).toInt()
-        val height = ceil(latRange / gridSpacingDeg).toInt()
+        val width = AvalancheConfig.GRID_POINTS_DENSITY
+        val height = AvalancheConfig.GRID_POINTS_DENSITY
         
-        if (width <= 0 || height <= 0) return null
-        
-        // Safety cap
-        val safeWidth = min(width, 2000)
-        val safeHeight = min(height, 2000)
-
-        val bitmap = createBitmap(safeWidth, safeHeight)
-        val pixels = IntArray(safeWidth * safeHeight)
+        val bitmap = createBitmap(width, height)
+        val pixels = IntArray(width * height)
         val elevationCache = mutableMapOf<GeometryUtils.Point, Int?>()
         fun getElev(p: GeometryUtils.Point): Int? {
             return elevationCache.getOrPut(p) { elevationProvider.getElevation(p) }
         }
 
-        for (rule in rules) {
+        val highColor = parseColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
+        val considerableColor = parseColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
+
+        val visibleRules = rules.filter { rule ->
             val rNorth = min(north, rule.bounds.maxLat)
             val rSouth = max(south, rule.bounds.minLat)
             val rEast = min(east, rule.bounds.maxLng)
             val rWest = max(west, rule.bounds.minLng)
+            rNorth > rSouth && rEast > rWest
+        }
+        val ruleBaseColors = visibleRules.map { parseColor(it.color) }
+        val ruleDlValues = visibleRules.map { getDangerValue(it.properties.dangerLevel) }
 
-            if (rNorth <= rSouth || rEast <= rWest) continue
+        for (y in 0 until width) {
+            for (x in 0 until height) {
+                val lng = west + (x + 0.5) * gridSpacingDegLon
+                val lat = north - (y + 0.5) * gridSpacingDegLat
+                val point = GeometryUtils.Point(lng, lat)
 
-            val startX = floor((rWest - west) / gridSpacingDeg).toInt()
-            val endX = ceil((rEast - west) / gridSpacingDeg).toInt()
-            val startY = floor((north - rNorth) / gridSpacingDeg).toInt()
-            val endY = ceil((north - rSouth) / gridSpacingDeg).toInt()
+                var pixelColor = Color.TRANSPARENT
+                var elevation: Int? = null
+                var elevationQueried = false
+                var metrics: TerrainUtils.TerrainMetrics? = null
+                var metricsCalculated = false
 
-            val sX = max(0, startX)
-            val eX = min(safeWidth, endX)
-            val sY = max(0, startY)
-            val eY = min(safeHeight, endY)
+                for (i in visibleRules.indices) {
+                    val rule = visibleRules[i]
+                    val baseColor = ruleBaseColors[i]
+                    val dlValue = ruleDlValues[i]
 
-            val baseColor = parseColor(rule.color)
+                    if (lat < rule.bounds.minLat || lat > rule.bounds.maxLat ||
+                        lng < rule.bounds.minLng || lng > rule.bounds.maxLng
+                    ) continue
 
-            for (x in sX until eX) {
-                for (y in sY until eY) {
-                    val lng = west + (x + 0.5) * gridSpacingDeg
-                    val lat = north - (y + 0.5) * gridSpacingDeg
-                    val point = GeometryUtils.Point(lng, lat)
+                    if (rule.geometry != null && !GeometryUtils.isPointInGeometry(point, rule.geometry)) {
+                        continue
+                    }
 
-                    if (rule.geometry != null) {
-                        if (!GeometryUtils.isPointInGeometry(point, rule.geometry)) {
+                    if (!elevationQueried) {
+                        elevation = getElev(point)
+                        elevationQueried = true
+                    }
+                    if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
+                        continue
+                    }
+
+                    val validAspects = rule.validAspects
+                    val checkAspect = !validAspects.isNullOrEmpty()
+                    val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
+                    var effectiveDlValue = dlValue
+                    var slope: Double? = null
+
+                    if (checkAspect || checkSlope) {
+                        if (!metricsCalculated) {
+                            metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
+                            metricsCalculated = true
+                        }
+
+                        if (metrics != null) {
+                            slope = metrics.slope
+                            if (checkSlope && rule.minSlope != null && slope < rule.minSlope) {
+                                continue
+                            }
+                            if (checkAspect && !validAspects.contains(metrics.aspect)) {
+                                if (dlValue <= 1) continue
+                                else effectiveDlValue--
+                            }
+                        } else {
                             continue
                         }
                     }
 
-                    val elevation = getElev(point)
-                    if (elevation != null && elevation >= rule.minElev && elevation <= rule.maxElev) {
-                        var slope: Double? = null
-                        val dlValue = getDangerValue(rule.properties.dangerLevel)
+                    var finalColor = baseColor
+                    if (rule.applySteepnessLogic && slope != null) {
+                        if (slope > 50) continue
 
-                        val checkAspect = !rule.validAspects.isNullOrEmpty()
-                        val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
-
-                        var effectiveDlValue = dlValue
-                        if (checkAspect || checkSlope) {
-                            val metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
-                            if (metrics != null) {
-                                slope = metrics.slope
-                                if (checkSlope) {
-                                    if (rule.minSlope != null && slope < rule.minSlope) {
-                                        continue
-                                    }
-                                }
-                                
-                                if (checkAspect) {
-                                    if (!rule.validAspects.contains(metrics.aspect)) {
-                                        if (dlValue <= 1) continue
-                                        else effectiveDlValue--
-                                    }
-                                }
-                            } else {
-                                continue
-                            }
+                        var matched = true
+                        if (effectiveDlValue >= 4) {
+                            finalColor = if (slope >= 30) highColor else considerableColor
+                        } else if (effectiveDlValue == 3) {
+                            if (slope >= 35) finalColor = highColor
+                            else if (slope >= 30) finalColor = considerableColor
+                            else matched = false
+                        } else if (effectiveDlValue == 2) {
+                            if (slope >= 40) finalColor = highColor
+                            else if (slope >= 35) finalColor = considerableColor
+                            else matched = false
+                        } else if (effectiveDlValue == 1) {
+                            if (slope >= 40) finalColor = considerableColor
+                            else matched = false
                         }
-                        
-                        var finalColor = baseColor
-
-                        if (rule.applySteepnessLogic && slope != null) {
-                            val highColor = parseColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
-                            val considerableColor = parseColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
-                            if(slope > 50) continue
-
-                            if (effectiveDlValue >= 4) {
-                                finalColor = if (slope >= 30) highColor else considerableColor
-                            } else if (effectiveDlValue == 3) {
-                                if (slope >= 35) finalColor = highColor
-                                else if (slope >= 30) finalColor = considerableColor
-                                else continue // Skip
-                            } else if (effectiveDlValue == 2) {
-                                if (slope >= 40) finalColor = highColor
-                                else if (slope >= 35) finalColor = considerableColor
-                                else continue // Skip
-                            } else if (effectiveDlValue == 1) {
-                                if (slope >= 40) finalColor = considerableColor
-                                else continue // Skip
-                            }
-                        }
-
-                        pixels[y * safeWidth + x] = finalColor
+                        if (!matched) continue
                     }
+                    pixelColor = finalColor
                 }
+                pixels[y * width + x] = pixelColor
             }
         }
         
-        bitmap.setPixels(pixels, 0, safeWidth, 0, 0, safeWidth, safeHeight)
+        bitmap.setPixels(pixels, 0, width, 0, 0, width, height)
 
         val duration = System.currentTimeMillis() - startTime
         updateStats(duration)
