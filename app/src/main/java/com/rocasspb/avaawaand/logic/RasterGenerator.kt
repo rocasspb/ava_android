@@ -10,6 +10,9 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import androidx.core.graphics.createBitmap
+import androidx.lifecycle.LiveData
+import com.rocasspb.avaawaand.data.RegionFeature
+import com.rocasspb.avaawaand.data.RegionResponse
 
 interface ElevationProvider {
     fun getElevation(point: GeometryUtils.Point): Int?
@@ -52,10 +55,9 @@ object RasterGenerator {
 
         val bitmap = createBitmap(safeWidth, safeHeight)
         val pixels = IntArray(safeWidth * safeHeight)
-        val elevationCache = mutableMapOf<String, Int?>()
+        val elevationCache = mutableMapOf<GeometryUtils.Point, Int?>()
         fun getElev(p: GeometryUtils.Point): Int? {
-            val key = "${p.x},${p.y}"
-            return elevationCache.getOrPut(key) { elevationProvider.getElevation(p) }
+            return elevationCache.getOrPut(p) { elevationProvider.getElevation(p) }
         }
 
         for (rule in rules) {
