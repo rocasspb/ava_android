@@ -2,6 +2,7 @@ package com.rocasspb.avaawaand.logic
 
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.util.Log
 import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlin.math.ceil
@@ -15,11 +16,19 @@ interface ElevationProvider {
 }
 
 object RasterGenerator {
+    private const val TAG = "RasterGenerator"
+    private var totalTime = 0L
+    private var callCount = 0
+    private var maxTime = 0L
+    private var minTime = Long.MAX_VALUE
+
     fun drawToBitmap(
         rules: List<GenerationRule>,
         bounds: GeometryUtils.Bounds, // Map bounds
         elevationProvider: ElevationProvider
     ): Bitmap? {
+        val startTime = System.currentTimeMillis()
+        
         val north = bounds.maxLat
         val south = bounds.minLat
         val east = bounds.maxLng
@@ -141,7 +150,23 @@ object RasterGenerator {
         }
         
         bitmap.setPixels(pixels, 0, safeWidth, 0, 0, safeWidth, safeHeight)
+
+        val duration = System.currentTimeMillis() - startTime
+        updateStats(duration)
+        
         return bitmap
+    }
+
+    private fun updateStats(duration: Long) {
+        synchronized(this) {
+            callCount++
+            totalTime += duration
+            if (duration > maxTime) maxTime = duration
+            if (duration < minTime) minTime = duration
+            
+            val avg = totalTime / callCount
+            Log.d(TAG, "drawToBitmap: took ${duration}ms. Stats: count=$callCount, avg=${avg}ms, min=${minTime}ms, max=${maxTime}ms")
+        }
     }
     
     private fun parseColor(hex: String): Int {
