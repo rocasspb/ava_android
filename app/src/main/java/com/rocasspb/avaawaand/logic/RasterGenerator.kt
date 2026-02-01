@@ -10,9 +10,6 @@ import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.min
 import androidx.core.graphics.createBitmap
-import androidx.lifecycle.LiveData
-import com.rocasspb.avaawaand.data.RegionFeature
-import com.rocasspb.avaawaand.data.RegionResponse
 
 interface ElevationProvider {
     fun getElevation(point: GeometryUtils.Point): Int?
@@ -174,7 +171,7 @@ object RasterGenerator {
     private fun parseColor(hex: String): Int {
         return try {
             Color.parseColor(hex)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Color.TRANSPARENT
         }
     }
