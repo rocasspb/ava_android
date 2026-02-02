@@ -50,8 +50,8 @@ class AvalancheLogicTest {
         
         assertEquals(1, bands.size)
         assertEquals("testRegion", bands[0].regionID)
-        assertEquals(1000.0, bands[0].minElev, 0.01)
-        assertEquals(5000.0, bands[0].maxElev, 0.01)
+        assertEquals(1000.0, bands[0].minElev.toDouble(), 0.01)
+        assertEquals(5000.0, bands[0].maxElev.toDouble(), 0.01)
     }
 
     @Test
@@ -78,8 +78,8 @@ class AvalancheLogicTest {
         // Fallback uses 0 to DEFAULT_MAX
         assertEquals(1, bands.size)
         assertEquals("testRegion", bands[0].regionID)
-        assertEquals(0.0, bands[0].minElev, 0.01)
-        assertEquals(AvalancheConfig.DEFAULT_MAX_ELEVATION, bands[0].maxElev, 0.01)
+        assertEquals(0.0, bands[0].minElev.toDouble(), 0.01)
+        assertEquals(AvalancheConfig.DEFAULT_MAX_ELEVATION.toDouble(), bands[0].maxElev.toDouble(), 0.01)
     }
 
     @Test
@@ -122,8 +122,8 @@ class AvalancheLogicTest {
         
         assertEquals(1, bands.size)
         assertEquals("testRegion", bands[0].regionID)
-        assertEquals(2000.0, bands[0].minElev, 0.01)
-        assertEquals(3000.0, bands[0].maxElev, 0.01)
+        assertEquals(2000.0, bands[0].minElev.toDouble(), 0.01)
+        assertEquals(3000.0, bands[0].maxElev.toDouble(), 0.01)
         assertEquals(listOf("N", "NE"), bands[0].validAspects)
     }
     
@@ -139,12 +139,12 @@ class AvalancheLogicTest {
             aspects = null
         )
         
-        val (min, max) = AvalancheLogic.adjustElevationForTreeline(1000.0, 3000.0, listOf(problem))
+        val (min, max) = AvalancheLogic.adjustElevationForTreeline(1000, 3000, listOf(problem))
         // lb="treeline" -> min = max(1000, 2000) = 2000
         // ub="4000" -> max = 3000 (unchanged by loop logic unless ub was treeline)
         
-        assertEquals(2000.0, min, 0.01)
-        assertEquals(3000.0, max, 0.01)
+        assertEquals(2000.0, min.toDouble(), 0.01)
+        assertEquals(3000.0, max.toDouble(), 0.01)
     }
 
     @Test
@@ -199,8 +199,8 @@ class AvalancheLogicTest {
         // Union max: max(3000, 3500) = 3500
         
         assertEquals(1, bands.size)
-        assertEquals(2000.0, bands[0].minElev, 0.01)
-        assertEquals(3500.0, bands[0].maxElev, 0.01)
+        assertEquals(2000.0, bands[0].minElev.toDouble(), 0.01)
+        assertEquals(3500.0, bands[0].maxElev.toDouble(), 0.01)
         val expectedAspects = listOf("N", "NE", "W", "NW")
         assertEquals(expectedAspects.sorted(), bands[0].validAspects?.sorted())
     }

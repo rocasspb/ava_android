@@ -1,6 +1,5 @@
 package com.rocasspb.avaawaand.logic
 
-import android.graphics.Bitmap
 import android.graphics.Color
 import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
@@ -90,21 +89,24 @@ class RasterGeneratorTest {
         // Elevation provider that returns a north-facing slope
         val northFacingProvider = object : ElevationProvider {
             override fun getElevation(point: GeometryUtils.Point): Int {
-                // North is +lat. If elevation decreases as we go North, aspect is North.
                 // TerrainUtils uses offset 0.0001
-                return (1000 - (point.y - 47) * 1000).toInt()
+                // Aspect calculation involves elevations at (p.x, p.y + offset) and (p.x, p.y - offset)
+                // If elevation decreases as we go North (+y), the aspect is North.
+                // dz_dy = (elev(N) - elev(S)) / (2 * offset)
+                // To have aspect North, we need dz_dy < 0.
+                return (1000 - (point.y - 47.25) * 100000).toInt()
             }
         }
         
         val bitmap = RasterGenerator.drawToBitmap(listOf(rule), bounds, northFacingProvider)
         assertNotNull(bitmap)
         val pixel = bitmap!!.getPixel(bitmap.width / 2, bitmap.height / 2)
-        assertEquals(Color.RED, pixel)
+        assertEquals("Should be Red on North aspect", Color.RED, pixel)
         
         // Now test with wrong aspect for Danger 1
         val southFacingRule = rule.copy(validAspects = listOf("S"))
         val bitmap2 = RasterGenerator.drawToBitmap(listOf(southFacingRule), bounds, northFacingProvider)
-        assertEquals(Color.TRANSPARENT, bitmap2!!.getPixel(bitmap2.width / 2, bitmap2.height / 2))
+        assertEquals("Should be Transparent on wrong aspect", Color.TRANSPARENT, bitmap2!!.getPixel(bitmap2.width / 2, bitmap2.height / 2))
     }
 
     @Test
@@ -123,9 +125,13 @@ class RasterGeneratorTest {
 
         val steepProvider = object : ElevationProvider {
             override fun getElevation(point: GeometryUtils.Point): Int {
-                // zN - zS = 0.0002 * k
-                // We want slope >= 35. tan(35) * 22.22 = 15.55
-                // 0.0002 * 80000 = 16.0
+                // slope = atan(sqrt(dz_dx^2 + dz_dy^2)) * (180/PI)
+                // dz_dy = (elev(N) - elev(S)) / (2 * offset)
+                // offset = 0.0001. 2 * offset * 111120 = 22.224 meters.
+                // We want slope >= 35. tan(35) * 22.224 = 15.56 meters difference.
+                // dz_dy = 15.56 / 22.224 = 0.7
+                // elev(N) - elev(S) = 15.56
+                // elev = 1000 + y * (15.56 / (2 * 0.0001)) = 1000 + y * 77800
                 return (1000.0 + (point.y - 47.25) * 80000.0).toInt()
             }
         }

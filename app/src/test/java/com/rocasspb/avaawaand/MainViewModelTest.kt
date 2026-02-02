@@ -48,7 +48,7 @@ class MainViewModelTest {
         val styleUrl = viewModel.mapStyleUrl.value
 
         assertNotNull(styleUrl)
-        assertEquals(Style.SATELLITE, styleUrl)
+        assertEquals(Style.OUTDOORS, styleUrl)
 
         val position = viewModel.initialCameraPosition.value
         assertNotNull(position)
