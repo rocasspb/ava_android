@@ -52,6 +52,7 @@ object RasterGenerator {
 
         val highColor = parseColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
         val considerableColor = parseColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
+        val ruleColors = rules.map { parseColor(it.color) }
 
         for (y in 0 until height) {
             for (x in 0 until width) {
@@ -62,7 +63,7 @@ object RasterGenerator {
                 val elevation: Int? = getElev(point)
                 var pixelColor = Color.TRANSPARENT
 
-                for (rule in rules) {
+                for ((index, rule) in rules.withIndex()) {
                     if (lat < rule.bounds.minLat || lat > rule.bounds.maxLat ||
                         lng < rule.bounds.minLng || lng > rule.bounds.maxLng
                     ) continue
@@ -70,6 +71,9 @@ object RasterGenerator {
                     if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
                         continue
                     }
+
+                    if(rule.geometry != null && !GeometryUtils.isPointInGeometry(point, rule.geometry))
+                        continue
 
                     val validAspects = rule.validAspects
                     val checkAspect = !validAspects.isNullOrEmpty()
@@ -94,7 +98,7 @@ object RasterGenerator {
                         }
                     }
 
-                    var finalColor = parseColor(rule.color)
+                    var finalColor = ruleColors[index]
                     if (rule.applySteepnessLogic && slope != null) {
                         if (slope > 50) continue
 
