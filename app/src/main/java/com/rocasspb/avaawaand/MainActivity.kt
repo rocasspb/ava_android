@@ -1,23 +1,33 @@
 package com.rocasspb.avaawaand
 
 import android.os.Bundle
-import android.view.View
-import android.widget.FrameLayout
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import androidx.cardview.widget.CardView
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.edit
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.chip.Chip
-import com.google.android.material.chip.ChipGroup
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.slider.RangeSlider
-import com.google.android.material.slider.Slider
 import com.mapbox.common.MapboxOptions
 import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
@@ -40,61 +50,28 @@ import com.mapbox.maps.plugin.gestures.gestures
 import com.mapbox.maps.plugin.logo.logo
 import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.maps.toCameraOptions
-import com.rocasspb.avaawaand.logic.CustomModeParams
-import com.rocasspb.avaawaand.logic.GenerationRule
-import com.rocasspb.avaawaand.logic.RasterGenerator
-import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
-import com.rocasspb.avaawaand.logic.VisualizationMode
+import com.rocasspb.avaawaand.logic.*
 import com.rocasspb.avaawaand.utils.AvalancheConfig.MAX_DISTANCE_PITCHED
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
+import java.util.*
 import kotlin.math.max
 import kotlin.math.min
 
-class MainActivity : AppCompatActivity() {
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+class MainActivity : ComponentActivity() {
 
-    private var mapView: MapView? = null
-    private var mapboxMap: MapboxMap? = null
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var fabMode: FloatingActionButton
-    private lateinit var fabLayers: FloatingActionButton
-    private lateinit var panelModeSelection: CardView
-    private lateinit var btnClosePanel: ImageView
-    private lateinit var optionBulletin: LinearLayout
-    private lateinit var bgBulletin: FrameLayout
-    private lateinit var iconBulletin: ImageView
-    private lateinit var textBulletin: TextView
-    private lateinit var optionRisk: LinearLayout
-    private lateinit var bgRisk: FrameLayout
-    private lateinit var iconRisk: ImageView
-    private lateinit var textRisk: TextView
-    private lateinit var optionCustom: LinearLayout
-    private lateinit var bgCustom: FrameLayout
-    private lateinit var iconCustom: ImageView
-    private lateinit var textCustom: TextView
-    
-    private lateinit var customControls: LinearLayout
-    private lateinit var sliderElevation: RangeSlider
-    private lateinit var sliderSteepness: Slider
-    private lateinit var chipGroupAspects: ChipGroup
-
-    private lateinit var cardPointInfo: CardView
-    private lateinit var textPointInfo: TextView
-
+    private var mapboxMap: MapboxMap? = null
     private var overlayJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MapboxOptions.accessToken=BuildConfig.MAPBOX_ACCESS_TOKEN
-        setContentView(R.layout.activity_main)
+        MapboxOptions.accessToken = BuildConfig.MAPBOX_ACCESS_TOKEN
 
-        mapView = findViewById(R.id.mapView)
-        mapboxMap = mapView?.mapboxMap
-        
         // Restore state
         val prefs = getPreferences(MODE_PRIVATE)
         val lat = prefs.getFloat("lat", 47.26f).toDouble()
@@ -106,261 +83,156 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {
             VisualizationMode.BULLETIN
         }
-        
+
         viewModel.restoreState(lat, lon, zoom, mode)
 
-        setupViews()
-        setupListeners()
-        
-        // Observe ViewModel for style URL
-        viewModel.mapStyleUrl.observe(this, Observer { styleUrl ->
-            mapboxMap?.loadStyle(
-                styleExtension = style(styleUrl) {
-                    val dem_source_id = "dem-source"
-                    +rasterDemSource(dem_source_id) {
-                        url("mapbox://mapbox.mapbox-terrain-dem-v1")
-                        // 514 specifies padded DEM tile and provides better performance than 512 tiles.
-                        tileSize(514)
-                    }
-                    +terrain(dem_source_id)
-                    +projection(ProjectionName.GLOBE)
-                }
-            ) { style ->
-                setupMapUiSettings()
-                val rules = viewModel.generationRules.value
-                if (rules != null) {
-                    overlayRaster(rules, style)
-                }
+        setContent {
+            AvaAwaAndTheme {
+                MainScreen(viewModel)
             }
-        })
-        
-        // Observe ViewModel for initial position
-        viewModel.initialCameraPosition.observe(this, Observer { options ->
-             if (options != null) {
-                 mapboxMap?.setCamera(options)
-             }
-        })
-        
-        // Observe generation rules
-        viewModel.generationRules.observe(this, Observer { rules ->
-            mapboxMap?.getStyle { style ->
-                 overlayRaster(rules, style)
-            }
-        })
-        
-        // Observe point info
-        viewModel.pointInfo.observe(this, Observer { info ->
-            if (info != null) {
-                textPointInfo.text = String.format(
-                    Locale.US,
-                    "Elev: %dm\nSlope: %.1f°\nAspect: %s",
-                    info.elevation, info.slope, info.aspect
+        }
+    }
+
+    @Composable
+    fun MainScreen(viewModel: MainViewModel) {
+        val visualizationMode by viewModel.visualizationMode.observeAsState(VisualizationMode.BULLETIN)
+        val pointInfo by viewModel.pointInfo.observeAsState()
+        var showModePanel by remember { mutableStateOf(false) }
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            MapContent(viewModel)
+
+            if (pointInfo != null) {
+                PointInfoCard(
+                    pointInfo = pointInfo!!,
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(16.dp)
                 )
-                cardPointInfo.visibility = View.VISIBLE
-            } else {
-                cardPointInfo.visibility = View.GONE
             }
-        })
-        
-        // Using onMapIdle listener for performance
-        mapboxMap?.subscribeMapIdle {
-             val rules = viewModel.generationRules.value ?: return@subscribeMapIdle
-             mapboxMap?.getStyle { style ->
-                 overlayRaster(rules, style)
-             }
-        }
-    }
 
-    private fun setupViews() {
-        fabMode = findViewById(R.id.fabMode)
-        fabLayers = findViewById(R.id.fabLayers)
-        panelModeSelection = findViewById(R.id.panelModeSelection)
-        btnClosePanel = findViewById(R.id.btnClosePanel)
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.End
+            ) {
+                if (!showModePanel) {
+                    FloatingActionButton(
+                        onClick = { viewModel.toggleMapStyle() },
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF5F6368),
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        shape = CircleShape
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_layers),
+                            contentDescription = "Switch Map Style",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
 
-        optionBulletin = findViewById(R.id.optionBulletin)
-        bgBulletin = findViewById(R.id.bgBulletin)
-        iconBulletin = findViewById(R.id.iconBulletin)
-        textBulletin = findViewById(R.id.textBulletin)
-
-        optionRisk = findViewById(R.id.optionRisk)
-        bgRisk = findViewById(R.id.bgRisk)
-        iconRisk = findViewById(R.id.iconRisk)
-        textRisk = findViewById(R.id.textRisk)
-
-        optionCustom = findViewById(R.id.optionCustom)
-        bgCustom = findViewById(R.id.bgCustom)
-        iconCustom = findViewById(R.id.iconCustom)
-        textCustom = findViewById(R.id.textCustom)
-        
-        customControls = findViewById(R.id.customControls)
-        sliderElevation = findViewById(R.id.sliderElevation)
-        sliderSteepness = findViewById(R.id.sliderSteepness)
-        chipGroupAspects = findViewById(R.id.chipGroupAspects)
-
-        cardPointInfo = findViewById(R.id.cardPointInfo)
-        textPointInfo = findViewById(R.id.textPointInfo)
-
-        // Set label formatters to show only integer values
-        sliderElevation.setLabelFormatter { value -> value.toInt().toString() }
-        sliderSteepness.setLabelFormatter { value -> value.toInt().toString() }
-
-        // Observe visualization mode to update UI
-        viewModel.visualizationMode.observe(this, Observer { mode ->
-             updateModeSelectionUi(mode)
-        })
-        
-        // Initializing chips
-        val aspects = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-        aspects.forEach { aspect ->
-            for (i in 0 until chipGroupAspects.childCount) {
-                val chip = chipGroupAspects.getChildAt(i) as? Chip
-                if (chip?.text == aspect) {
-                    chip.isChecked = true
+                    FloatingActionButton(
+                        onClick = { showModePanel = true },
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF5F6368),
+                        shape = CircleShape
+                    ) {
+                        val iconRes = when (visualizationMode) {
+                            VisualizationMode.BULLETIN -> R.drawable.ic_bulletin
+                            VisualizationMode.RISK -> R.drawable.ic_landscape
+                            VisualizationMode.CUSTOM -> R.drawable.ic_custom
+                        }
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = "Select Mode",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
-        }
-    }
 
-    private fun setupListeners() {
-        fabMode.setOnClickListener {
-            panelModeSelection.visibility = View.VISIBLE
-            fabMode.hide()
-            fabLayers.hide()
-        }
-
-        fabLayers.setOnClickListener {
-            viewModel.toggleMapStyle()
-        }
-
-        btnClosePanel.setOnClickListener {
-            panelModeSelection.visibility = View.GONE
-            fabMode.show()
-            fabLayers.show()
-        }
-
-        optionBulletin.setOnClickListener {
-            viewModel.setVisualizationMode(VisualizationMode.BULLETIN)
-        }
-
-        optionRisk.setOnClickListener {
-            viewModel.setVisualizationMode(VisualizationMode.RISK)
-        }
-
-        optionCustom.setOnClickListener {
-            viewModel.setVisualizationMode(VisualizationMode.CUSTOM)
-        }
-        
-        sliderElevation.addOnChangeListener { _, _, fromUser ->
-            if (fromUser) {
-                updateViewModelCustomParams()
-            }
-        }
-        
-        sliderSteepness.addOnChangeListener { _, _, fromUser ->
-            if (fromUser) {
-                updateViewModelCustomParams()
-            }
-        }
-        
-        for (i in 0 until chipGroupAspects.childCount) {
-            val chip = chipGroupAspects.getChildAt(i) as? Chip
-            chip?.setOnCheckedChangeListener { _, _ ->
-                updateViewModelCustomParams()
-            }
-        }
-
-        mapboxMap?.addOnMapLongClickListener { point ->
-            viewModel.getPointInfo(point, mapboxMap?.cameraState?.zoom ?: 12.0)
-            true
-        }
-
-        mapboxMap?.addOnMapClickListener {
-            viewModel.clearPointInfo()
-            false
-        }
-    }
-    
-    private fun updateViewModelCustomParams() {
-        val elevationValues = sliderElevation.values
-        val minElev = elevationValues[0].toInt()
-        val maxElev = elevationValues[1].toInt()
-        val minSlope = sliderSteepness.value.toInt()
-        
-        val selectedAspects = mutableListOf<String>()
-        for (i in 0 until chipGroupAspects.childCount) {
-            val chip = chipGroupAspects.getChildAt(i) as? Chip
-            if (chip != null && chip.isChecked) {
-                selectedAspects.add(chip.text.toString())
-            }
-        }
-        
-        viewModel.updateCustomParams(CustomModeParams(
-            minElev = minElev,
-            maxElev = maxElev,
-            minSlope = minSlope,
-            aspects = selectedAspects
-        ))
-    }
-
-    private fun updateModeSelectionUi(mode: VisualizationMode) {
-        // Reset all
-        resetOptionUi(bgBulletin, iconBulletin, textBulletin)
-        resetOptionUi(bgRisk, iconRisk, textRisk)
-        resetOptionUi(bgCustom, iconCustom, textCustom)
-
-        // Highlight selected
-        when (mode) {
-            VisualizationMode.BULLETIN -> {
-                highlightOptionUi(bgBulletin, iconBulletin, textBulletin)
-                fabMode.setImageResource(R.drawable.ic_bulletin)
-                customControls.visibility = View.GONE
-            }
-            VisualizationMode.RISK -> {
-                highlightOptionUi(bgRisk, iconRisk, textRisk)
-                fabMode.setImageResource(R.drawable.ic_landscape)
-                customControls.visibility = View.GONE
-            }
-            VisualizationMode.CUSTOM -> {
-                highlightOptionUi(bgCustom, iconCustom, textCustom)
-                fabMode.setImageResource(R.drawable.ic_custom)
-                customControls.visibility = View.VISIBLE
+            if (showModePanel) {
+                ModeSelectionPanel(
+                    viewModel = viewModel,
+                    onClose = { showModePanel = false },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                )
             }
         }
     }
 
-    private fun resetOptionUi(bg: FrameLayout, icon: ImageView, text: TextView) {
-        bg.background = ContextCompat.getDrawable(this, android.R.color.transparent)
-        icon.setColorFilter(ContextCompat.getColor(this, R.color.gray_unselected))
-        text.setTextColor(ContextCompat.getColor(this, R.color.gray_unselected))
+    @Composable
+    fun MapContent(viewModel: MainViewModel) {
+        val mapStyleUrl by viewModel.mapStyleUrl.observeAsState(Style.OUTDOORS)
+        val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
+        val generationRules by viewModel.generationRules.observeAsState(emptyList())
+
+        AndroidView(
+            factory = { ctx ->
+                MapView(ctx).apply {
+                    val map = this.mapboxMap
+                    this@MainActivity.mapboxMap = map
+                    
+                    map.subscribeMapIdle {
+                        val rules = viewModel.generationRules.value ?: return@subscribeMapIdle
+                        map.getStyle { style ->
+                            overlayRaster(map, rules, style)
+                        }
+                    }
+
+                    map.addOnMapLongClickListener { point ->
+                        viewModel.getPointInfo(point, map.cameraState.zoom)
+                        true
+                    }
+
+                    map.addOnMapClickListener {
+                        viewModel.clearPointInfo()
+                        false
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxSize(),
+            update = { mapView ->
+                val map = mapView.mapboxMap
+                
+                initialCameraPosition?.let {
+                    map.setCamera(it)
+                }
+
+                map.loadStyle(
+                    styleExtension = style(mapStyleUrl) {
+                        val dem_source_id = "dem-source"
+                        +rasterDemSource(dem_source_id) {
+                            url("mapbox://mapbox.mapbox-terrain-dem-v1")
+                            tileSize(514)
+                        }
+                        +terrain(dem_source_id)
+                        +projection(ProjectionName.GLOBE)
+                    }
+                ) { style ->
+                    mapView.compass.enabled = false
+                    mapView.scalebar.enabled = false
+                    mapView.logo.enabled = true
+                    mapView.attribution.enabled = true
+                    mapView.gestures.pitchEnabled = true
+                    
+                    overlayRaster(map, generationRules, style)
+                }
+            }
+        )
     }
 
-    private fun highlightOptionUi(bg: FrameLayout, icon: ImageView, text: TextView) {
-        bg.background = ContextCompat.getDrawable(this, R.drawable.bg_option_selected)
-        icon.setColorFilter(ContextCompat.getColor(this, R.color.blue_selected))
-        text.setTextColor(ContextCompat.getColor(this, R.color.blue_selected))
-    }
-
-    private fun setupMapUiSettings() {
-        mapView?.compass?.enabled = true
-        mapView?.scalebar?.enabled = true
-        mapView?.logo?.enabled = true
-        mapView?.attribution?.enabled = true
-        mapView?.gestures?.pitchEnabled = true
-    }
-
-    private fun overlayRaster(rules: List<GenerationRule>, style: Style) {
+    private fun overlayRaster(map: MapboxMap, rules: List<GenerationRule>, style: Style) {
         if (rules.isEmpty()) return
 
-        val map = mapboxMap ?: return
         val cameraState = map.cameraState
         val bounds = map.coordinateBoundsForCamera(cameraState.toCameraOptions())
-        
         val center = cameraState.center
-        //in high-pitch scenarios, bounds appear enormous - therefore we need to cap to a
-        //reasonable distance for calculation. At low pitch it is not possible to have this problem.
-        //The parameters are arbitrary though
-        val maxDelta = if(cameraState.pitch > 30) MAX_DISTANCE_PITCHED else 10.0
-        
+        val maxDelta = if (cameraState.pitch > 30) MAX_DISTANCE_PITCHED else 10.0
+
         val renderBounds = GeometryUtils.Bounds(
             max(bounds.west(), center.longitude() - maxDelta),
             min(bounds.east(), center.longitude() + maxDelta),
@@ -374,7 +246,6 @@ class MainActivity : AppCompatActivity() {
             val provider = TerrainRgbElevationProvider()
             provider.prepare(renderBounds, zoom)
 
-            // Generate bitmap for the current visible bounds
             val bitmap = RasterGenerator.drawToBitmap(rules, renderBounds, provider) ?: return@launch
 
             withContext(Dispatchers.Main) {
@@ -382,19 +253,18 @@ class MainActivity : AppCompatActivity() {
                     val sourceId = "avalanche-source"
                     val layerId = "avalanche-layer"
 
-                    // Cleanup existing
                     if (style.styleSourceExists(sourceId)) {
                         style.removeStyleLayer(layerId)
                         style.removeStyleSource(sourceId)
                     }
 
                     val coords = listOf(
-                        listOf(renderBounds.minLng, renderBounds.maxLat), // Top Left
-                        listOf(renderBounds.maxLng, renderBounds.maxLat), // Top Right
-                        listOf(renderBounds.maxLng, renderBounds.minLat), // Bottom Right
-                        listOf(renderBounds.minLng, renderBounds.minLat)  // Bottom Left
+                        listOf(renderBounds.minLng, renderBounds.maxLat),
+                        listOf(renderBounds.maxLng, renderBounds.maxLat),
+                        listOf(renderBounds.maxLng, renderBounds.minLat),
+                        listOf(renderBounds.minLng, renderBounds.minLat)
                     )
-                    
+
                     val imageSource = ImageSource.Builder(sourceId)
                         .coordinates(coords)
                         .build()
@@ -408,10 +278,197 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    
+
+    @Composable
+    fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modifier) {
+        Card(
+            modifier = modifier,
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = String.format(
+                        Locale.US,
+                        "Elev: %dm\nSlope: %.1f°\nAspect: %s",
+                        pointInfo.elevation, pointInfo.slope, pointInfo.aspect
+                    ),
+                    color = Color.Black,
+                    fontSize = 14.sp
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun ModeSelectionPanel(
+        viewModel: MainViewModel,
+        onClose: () -> Unit,
+        modifier: Modifier = Modifier
+    ) {
+        val visualizationMode by viewModel.visualizationMode.observeAsState(VisualizationMode.BULLETIN)
+        val customParams by viewModel.customModeParams.observeAsState(CustomModeParams())
+
+        Card(
+            modifier = modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                IconButton(
+                    onClick = onClose,
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = Color(0xFF5F6368)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    ModeOption(
+                        isSelected = visualizationMode == VisualizationMode.BULLETIN,
+                        iconRes = R.drawable.ic_bulletin,
+                        label = stringResource(R.string.mode_bulletin),
+                        onClick = { viewModel.setVisualizationMode(VisualizationMode.BULLETIN) }
+                    )
+                    ModeOption(
+                        isSelected = visualizationMode == VisualizationMode.RISK,
+                        iconRes = R.drawable.ic_landscape,
+                        label = stringResource(R.string.mode_risk),
+                        onClick = { viewModel.setVisualizationMode(VisualizationMode.RISK) }
+                    )
+                    ModeOption(
+                        isSelected = visualizationMode == VisualizationMode.CUSTOM,
+                        iconRes = R.drawable.ic_custom,
+                        label = stringResource(R.string.mode_custom),
+                        onClick = { viewModel.setVisualizationMode(VisualizationMode.CUSTOM) }
+                    )
+                }
+
+                if (visualizationMode == VisualizationMode.CUSTOM) {
+                    CustomControls(
+                        params = customParams,
+                        onParamsChange = { viewModel.updateCustomParams(it) }
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ModeOption(
+        isSelected: Boolean,
+        iconRes: Int,
+        label: String,
+        onClick: () -> Unit
+    ) {
+        val contentColor = if (isSelected) Color(0xFF1A73E8) else Color(0xFF5F6368)
+        val bgColor = if (isSelected) Color(0xFFE8F0FE) else Color.Transparent
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.clickable(onClick = onClick)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(bgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = label,
+                    modifier = Modifier.size(32.dp),
+                    tint = contentColor
+                )
+            }
+            Text(
+                text = label,
+                color = contentColor,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+    }
+
+    @Composable
+    fun CustomControls(
+        params: CustomModeParams,
+        onParamsChange: (CustomModeParams) -> Unit
+    ) {
+        Column(modifier = Modifier.padding(top = 16.dp)) {
+            Text(
+                text = stringResource(R.string.elevation_range_m),
+                fontWeight = FontWeight.Bold
+            )
+            RangeSlider(
+                value = params.minElev.toFloat()..params.maxElev.toFloat(),
+                onValueChange = { range ->
+                    onParamsChange(params.copy(minElev = range.start.toInt(), maxElev = range.endInclusive.toInt()))
+                },
+                valueRange = 0f..5000f
+            )
+
+            Text(
+                text = stringResource(R.string.min_steepness_degrees),
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            Slider(
+                value = params.minSlope.toFloat(),
+                onValueChange = { val_ ->
+                    onParamsChange(params.copy(minSlope = val_.toInt()))
+                },
+                valueRange = 30f..45f,
+                steps = 14
+            )
+
+            Text(
+                text = stringResource(R.string.aspects),
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+
+            val allAspects = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                allAspects.forEach { aspect ->
+                    FilterChip(
+                        selected = params.aspects.contains(aspect),
+                        onClick = {
+                            val newAspects = if (params.aspects.contains(aspect)) {
+                                params.aspects.filter { it != aspect }
+                            } else {
+                                params.aspects + aspect
+                            }
+                            onParamsChange(params.copy(aspects = newAspects))
+                        },
+                        label = { Text(aspect) }
+                    )
+                }
+            }
+        }
+    }
+
     override fun onPause() {
         super.onPause()
-        
         val map = mapboxMap ?: return
         val camera = map.cameraState
         val target = camera.center
@@ -425,4 +482,16 @@ class MainActivity : AppCompatActivity() {
             putString("mode", mode.name)
         }
     }
+}
+
+@Composable
+fun AvaAwaAndTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = lightColorScheme(
+            primary = Color(0xFF1A73E8),
+            surface = Color.White,
+            onSurface = Color.Black
+        ),
+        content = content
+    )
 }
