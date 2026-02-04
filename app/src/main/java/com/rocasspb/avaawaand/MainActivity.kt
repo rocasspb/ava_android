@@ -412,10 +412,21 @@ class MainActivity : ComponentActivity() {
         onParamsChange: (CustomModeParams) -> Unit
     ) {
         Column(modifier = Modifier.padding(top = 16.dp)) {
-            Text(
-                text = stringResource(R.string.elevation_range_m),
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.elevation_range_m),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${params.minElev}m - ${params.maxElev}m",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
             RangeSlider(
                 value = params.minElev.toFloat()..params.maxElev.toFloat(),
                 onValueChange = { range ->
@@ -424,11 +435,23 @@ class MainActivity : ComponentActivity() {
                 valueRange = 0f..5000f
             )
 
-            Text(
-                text = stringResource(R.string.min_steepness_degrees),
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.min_steepness_degrees),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${params.minSlope}°",
+                    fontSize = 14.sp,
+                    color = Color.Gray
+                )
+            }
             Slider(
                 value = params.minSlope.toFloat(),
                 onValueChange = { val_ ->
