@@ -170,6 +170,18 @@ class MainActivity : ComponentActivity() {
         val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
         val generationRules by viewModel.generationRules.observeAsState(emptyList())
 
+        var lastLoadedStyle by remember { mutableStateOf<String?>(null) }
+        var hasSetInitialCamera by remember { mutableStateOf(false) }
+
+        // Trigger overlay update when rules change
+        LaunchedEffect(generationRules) {
+            mapboxMap?.let { map ->
+                map.getStyle { style ->
+                    overlayRaster(map, generationRules, style)
+                }
+            }
+        }
+
         AndroidView(
             factory = { ctx ->
                 MapView(ctx).apply {
@@ -199,27 +211,33 @@ class MainActivity : ComponentActivity() {
                 val map = mapView.mapboxMap
                 
                 initialCameraPosition?.let {
-                    map.setCamera(it)
+                    if (!hasSetInitialCamera) {
+                        map.setCamera(it)
+                        hasSetInitialCamera = true
+                    }
                 }
 
-                map.loadStyle(
-                    styleExtension = style(mapStyleUrl) {
-                        val dem_source_id = "dem-source"
-                        +rasterDemSource(dem_source_id) {
-                            url("mapbox://mapbox.mapbox-terrain-dem-v1")
-                            tileSize(514)
+                if (lastLoadedStyle != mapStyleUrl) {
+                    lastLoadedStyle = mapStyleUrl
+                    map.loadStyle(
+                        styleExtension = style(mapStyleUrl) {
+                            val dem_source_id = "dem-source"
+                            +rasterDemSource(dem_source_id) {
+                                url("mapbox://mapbox.mapbox-terrain-dem-v1")
+                                tileSize(514)
+                            }
+                            +terrain(dem_source_id)
+                            +projection(ProjectionName.GLOBE)
                         }
-                        +terrain(dem_source_id)
-                        +projection(ProjectionName.GLOBE)
+                    ) { style ->
+                        mapView.compass.enabled = false
+                        mapView.scalebar.enabled = false
+                        mapView.logo.enabled = true
+                        mapView.attribution.enabled = true
+                        mapView.gestures.pitchEnabled = true
+                        
+                        overlayRaster(map, generationRules, style)
                     }
-                ) { style ->
-                    mapView.compass.enabled = false
-                    mapView.scalebar.enabled = false
-                    mapView.logo.enabled = true
-                    mapView.attribution.enabled = true
-                    mapView.gestures.pitchEnabled = true
-                    
-                    overlayRaster(map, generationRules, style)
                 }
             }
         )
