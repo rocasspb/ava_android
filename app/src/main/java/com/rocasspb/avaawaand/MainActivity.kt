@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels { MainViewModel.Factory }
     private var mapboxMap: MapboxMap? = null
     private var overlayJob: Job? = null
+    private var isOverlayLoading by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -93,13 +94,32 @@ class MainActivity : ComponentActivity() {
         Box(modifier = Modifier.fillMaxSize()) {
             MapContent(viewModel)
 
-            if (pointInfo != null) {
-                PointInfoCard(
-                    pointInfo = pointInfo!!,
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(16.dp)
-                )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (isOverlayLoading) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color.White,
+                        shadowElevation = 4.dp,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                if (pointInfo != null) {
+                    PointInfoCard(pointInfo = pointInfo!!)
+                }
             }
 
             Column(
@@ -179,8 +199,8 @@ class MainActivity : ComponentActivity() {
                     val map = this.mapboxMap
                     this@MainActivity.mapboxMap = map
                     
-                    map.subscribeMapIdle {
-                        val rules = viewModel.generationRules.value ?: return@subscribeMapIdle
+                    map.subscribeCameraChanged {
+                        val rules = viewModel.generationRules.value ?: return@subscribeCameraChanged
                         map.getStyle { style ->
                             overlayRaster(map, rules, style)
                         }
@@ -251,38 +271,45 @@ class MainActivity : ComponentActivity() {
         val zoom = cameraState.zoom
 
         overlayJob?.cancel()
+        isOverlayLoading = true
         overlayJob = lifecycleScope.launch(Dispatchers.Default) {
-            val provider = TerrainRgbElevationProvider()
-            provider.prepare(renderBounds, zoom)
+            try {
+                val provider = TerrainRgbElevationProvider()
+                provider.prepare(renderBounds, zoom)
 
-            val bitmap = RasterGenerator.drawToBitmap(rules, renderBounds, provider) ?: return@launch
+                val bitmap = RasterGenerator.drawToBitmap(rules, renderBounds, provider) ?: return@launch
 
-            withContext(Dispatchers.Main) {
-                if (style.isStyleLoaded()) {
-                    val sourceId = "avalanche-source"
-                    val layerId = "avalanche-layer"
+                withContext(Dispatchers.Main) {
+                    if (style.isStyleLoaded()) {
+                        val sourceId = "avalanche-source"
+                        val layerId = "avalanche-layer"
 
-                    if (style.styleSourceExists(sourceId)) {
-                        style.removeStyleLayer(layerId)
-                        style.removeStyleSource(sourceId)
+                        if (style.styleSourceExists(sourceId)) {
+                            style.removeStyleLayer(layerId)
+                            style.removeStyleSource(sourceId)
+                        }
+
+                        val coords = listOf(
+                            listOf(renderBounds.minLng, renderBounds.maxLat),
+                            listOf(renderBounds.maxLng, renderBounds.maxLat),
+                            listOf(renderBounds.maxLng, renderBounds.minLat),
+                            listOf(renderBounds.minLng, renderBounds.minLat)
+                        )
+
+                        val imageSource = ImageSource.Builder(sourceId)
+                            .coordinates(coords)
+                            .build()
+                        style.addSource(imageSource)
+                        imageSource.updateImage(bitmap)
+
+                        val layer = RasterLayer(layerId, sourceId)
+                        layer.rasterOpacity(0.7)
+                        style.addLayer(layer)
                     }
-
-                    val coords = listOf(
-                        listOf(renderBounds.minLng, renderBounds.maxLat),
-                        listOf(renderBounds.maxLng, renderBounds.maxLat),
-                        listOf(renderBounds.maxLng, renderBounds.minLat),
-                        listOf(renderBounds.minLng, renderBounds.minLat)
-                    )
-
-                    val imageSource = ImageSource.Builder(sourceId)
-                        .coordinates(coords)
-                        .build()
-                    style.addSource(imageSource)
-                    imageSource.updateImage(bitmap)
-
-                    val layer = RasterLayer(layerId, sourceId)
-                    layer.rasterOpacity(0.7)
-                    style.addLayer(layer)
+                }
+            } finally {
+                withContext(Dispatchers.Main) {
+                    isOverlayLoading = false
                 }
             }
         }
