@@ -55,7 +55,7 @@ import kotlin.math.min
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
-    private val viewModel: MainViewModel by viewModels()
+    private val viewModel: MainViewModel by viewModels { MainViewModel.Factory }
     private var mapboxMap: MapboxMap? = null
     private var overlayJob: Job? = null
 

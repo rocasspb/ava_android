@@ -79,7 +79,6 @@ class TerrainRgbElevationProvider : ElevationProvider {
             }
         } catch (e: Exception) {
             Log.e("TerrainRgbProvider", "Error fetching tile $key: ${e.message}")
-            tileCache[key] = null
         }
     }
 

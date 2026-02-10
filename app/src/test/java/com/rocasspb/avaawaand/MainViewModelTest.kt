@@ -3,6 +3,7 @@ package com.rocasspb.avaawaand
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.gson.Gson
 import com.mapbox.maps.Style
+import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.AvalancheResponse
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.RegionResponse
@@ -68,13 +69,11 @@ class MainViewModelTest {
 
         val avalancheData = viewModel.avalancheData.value
         assertNotNull(avalancheData)
-        // Fake repo returns empty lists by default or we can populate it
     }
 
     @Test
     fun testParseRegions() {
         val gson = Gson()
-        // Simulating the JSON content from api_responses.txt for Regions
         val json = """
             {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"AT-02-14","start_date":"2025-08-01","end_date":null},"geometry":{"type":"MultiPolygon","coordinates":[[[[12.7221099,46.7026896],[12.7210542,46.7027712]]]]}}]}
         """.trimIndent()
@@ -95,7 +94,6 @@ class MainViewModelTest {
     @Test
     fun testParseAvalancheData() {
         val gson = Gson()
-        // Simulating a snippet of the JSON content from api_responses.txt for Avalanche Data
         val json = """
             {"bulletins":[{"publicationTime":"2025-12-26T16:00:00Z","validTime":{"startTime":"2025-12-26T16:00:00Z","endTime":"2025-12-27T16:00:00Z"},"unscheduled":false,"avalancheActivity":{"highlights":"Wind slabs and weakly bonded old snow require caution.","comment":"Comment text."},"snowpackStructure":{"comment":"Snowpack comment."},"tendency":[{"highlights":"Low avalanche danger will prevail.","tendencyType":"steady","validTime":{"startTime":"2025-12-27T16:00:00Z","endTime":"2025-12-28T16:00:00Z"}}],"customData":{"ALBINA":{"mainDate":"2025-12-27"},"LWD_Tyrol":{"dangerPatterns":["DP1"]}},"avalancheProblems":[{"problemType":"persistent_weak_layers","elevation":{"lowerBound":"2600"},"validTimePeriod":"all_day","snowpackStability":"poor","frequency":"few","avalancheSize":1,"customData":{"ALBINA":{"avalancheType":"slab"}},"aspects":["NE","NW","N"]}],"bulletinID":"76470d99-791b-4910-b7c8-99adb6197969","dangerRatings":[{"mainValue":"low","validTimePeriod":"all_day"}],"lang":"en","regions":[{"name":"Zillertal Alps Northeast","regionID":"AT-07-23-02"}]}]}
         """.trimIndent()
@@ -117,6 +115,9 @@ class MainViewModelTest {
 }
 
 class FakeMainRepository : MainRepository {
+    private var persistedRegions: RegionResponse? = null
+    private var persistedAvalanche: AvalancheResponse? = null
+
     override suspend fun getRegions(): RegionResponse {
         return RegionResponse("FeatureCollection", Collections.emptyList())
     }
@@ -124,4 +125,18 @@ class FakeMainRepository : MainRepository {
     override suspend fun getAvalancheData(): AvalancheResponse {
         return AvalancheResponse(Collections.emptyList())
     }
+
+    override fun getPersistedRegions(): RegionResponse? = persistedRegions
+
+    override fun getPersistedAvalancheData(): AvalancheResponse? = persistedAvalanche
+
+    override fun persistRegions(regions: RegionResponse) {
+        persistedRegions = regions
+    }
+
+    override fun persistAvalancheData(avalanche: AvalancheResponse) {
+        persistedAvalanche = avalanche
+    }
+
+    override fun isFresh(avalancheData: AvalancheData): Boolean = true
 }

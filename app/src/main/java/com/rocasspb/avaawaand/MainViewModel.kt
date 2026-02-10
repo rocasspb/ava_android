@@ -1,15 +1,19 @@
 package com.rocasspb.avaawaand
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.MainRepositoryImpl
+import com.rocasspb.avaawaand.data.PersistenceManager
 import com.rocasspb.avaawaand.data.RegionResponse
 import com.rocasspb.avaawaand.logic.AvalancheLogic
 import com.rocasspb.avaawaand.logic.CustomModeParams
@@ -25,7 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
-class MainViewModel(private val repository: MainRepository = MainRepositoryImpl()) : ViewModel() {
+class MainViewModel(private val repository: MainRepository) : ViewModel() {
 
     private val _mapStyleUrl = MutableLiveData<String>()
     val mapStyleUrl: LiveData<String> = _mapStyleUrl
@@ -101,17 +105,36 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
     fun fetchData() {
         viewModelScope.launch {
+            val persistedRegions = repository.getPersistedRegions()
+            val persistedAvalanche = repository.getPersistedAvalancheData()
+            
+            if (persistedRegions != null && persistedAvalanche != null) {
+                val hasFreshData = persistedAvalanche.bulletins.any { repository.isFresh(it) }
+                if (hasFreshData) {
+                    _regions.value = persistedRegions
+                    _avalancheData.value = persistedAvalanche.bulletins
+                    Log.d("MainViewModel", "Have fresh data, ${persistedAvalanche.bulletins.size} bulletins")
+                    calculateRules()
+                }
+            }
+
             try {
+                Log.d("MainViewModel", "Loading data")
                 _error.value = null
                 val regionsResponse = repository.getRegions()
+                repository.persistRegions(regionsResponse)
                 _regions.value = regionsResponse
 
                 val avalancheResponse = repository.getAvalancheData()
+                repository.persistAvalancheData(avalancheResponse)
                 _avalancheData.value = avalancheResponse.bulletins
-                
+                Log.d("MainViewModel", "Data loaded")
                 calculateRules()
             } catch (e: Exception) {
-                _error.value = e.message
+                if (_avalancheData.value == null) {
+                    _error.value = e.message
+                    Log.e("MainViewModel", "Failed to load data: ${_error.value}")
+                }
             }
         }
     }
@@ -192,5 +215,17 @@ class MainViewModel(private val repository: MainRepository = MainRepositoryImpl(
 
     fun clearPointInfo() {
         _pointInfo.value = null
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+                val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
+                val persistenceManager = PersistenceManager(application)
+                val repository = MainRepositoryImpl(persistenceManager = persistenceManager)
+                return MainViewModel(repository) as T
+            }
+        }
     }
 }
