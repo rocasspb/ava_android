@@ -13,7 +13,7 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.*
 
-class TerrainRgbElevationProvider : ElevationProvider {
+open class TerrainRgbElevationProvider : ElevationProvider {
 
     private val tileCache = ConcurrentHashMap<String, IntArray?>()
     private var currentTileZoom = 12
@@ -21,7 +21,7 @@ class TerrainRgbElevationProvider : ElevationProvider {
     private val baseUrl = "https://api.maptiler.com/tiles/terrain-rgb-v2"
     private val TILE_SIZE = 512
 
-    suspend fun prepare(bounds: GeometryUtils.Bounds, mapZoom: Double) = withContext(Dispatchers.IO) {
+    open suspend fun prepare(bounds: GeometryUtils.Bounds, mapZoom: Double) = withContext(Dispatchers.IO) {
         val zoom = floor(mapZoom).toInt()
         currentTileZoom = min(zoom + 2, 12)
         

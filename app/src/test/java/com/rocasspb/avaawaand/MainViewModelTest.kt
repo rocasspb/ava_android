@@ -42,7 +42,7 @@ class MainViewModelTest {
 
     @Test
     fun testLoadMapConfig() {
-        val viewModel = MainViewModel(FakeMainRepository())
+        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
 
         viewModel.loadMapConfig()
 
@@ -58,7 +58,7 @@ class MainViewModelTest {
     @Test
     fun testFetchData() = runTest(testDispatcher) {
         val fakeRepo = FakeMainRepository()
-        val viewModel = MainViewModel(fakeRepo)
+        val viewModel = MainViewModel(fakeRepo, ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         
         // Advance time to allow init block to run fetchData
         advanceUntilIdle()
@@ -119,11 +119,11 @@ class FakeMainRepository : MainRepository {
     private var persistedAvalanche: AvalancheResponse? = null
 
     override suspend fun getRegions(): RegionResponse {
-        return RegionResponse("FeatureCollection", Collections.emptyList())
+        return RegionResponse("FeatureCollection", emptyList())
     }
 
     override suspend fun getAvalancheData(): AvalancheResponse {
-        return AvalancheResponse(Collections.emptyList())
+        return AvalancheResponse(emptyList())
     }
 
     override fun getPersistedRegions(): RegionResponse? = persistedRegions

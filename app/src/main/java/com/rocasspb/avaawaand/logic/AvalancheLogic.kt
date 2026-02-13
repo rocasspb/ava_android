@@ -89,7 +89,7 @@ object AvalancheLogic {
         return bands
     }
 
-    private fun parseElevation(value: String?, isMax: Boolean = false): Int {
+    fun parseElevation(value: String?, isMax: Boolean = false): Int {
         if (value == null) return if (isMax) AvalancheConfig.DEFAULT_MAX_ELEVATION else 0
         val v = value.toIntOrNull()
         if (v != null) return v

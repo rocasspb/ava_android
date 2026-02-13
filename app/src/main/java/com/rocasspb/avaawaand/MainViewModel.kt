@@ -24,12 +24,18 @@ import com.rocasspb.avaawaand.logic.TerrainUtils
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.max
 
-class MainViewModel(private val repository: MainRepository) : ViewModel() {
+class MainViewModel(
+    private val repository: MainRepository,
+    private val elevationProvider: TerrainRgbElevationProvider = TerrainRgbElevationProvider(),
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) : ViewModel() {
 
     private val _mapStyleUrl = MutableLiveData<String>()
     val mapStyleUrl: LiveData<String> = _mapStyleUrl
@@ -61,12 +67,13 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
     data class PointInfo(
         val elevation: Int,
         val slope: Double,
-        val aspect: String
+        val aspect: String,
+        val dangerLevel: String? = null,
+        val avalancheProblems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null
     )
 
     private var calculationJob: Job? = null
     private var pointInfoJob: Job? = null
-    private val elevationProvider = TerrainRgbElevationProvider()
 
     init {
         // Load initial data
@@ -155,7 +162,7 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
     
     fun calculateRules() {
          calculationJob?.cancel()
-         calculationJob = viewModelScope.launch(Dispatchers.Default) {
+         calculationJob = viewModelScope.launch(defaultDispatcher) {
              val bulletins = _avalancheData.value ?: return@launch
              val regions = _regions.value ?: return@launch
              val currentMode = _visualizationMode.value ?: VisualizationMode.BULLETIN
@@ -192,7 +199,7 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
 
     fun getPointInfo(point: Point, zoom: Double) {
         pointInfoJob?.cancel()
-        pointInfoJob = viewModelScope.launch(Dispatchers.Default) {
+        pointInfoJob = viewModelScope.launch(defaultDispatcher) {
             val geoPoint = GeometryUtils.Point(point.longitude(), point.latitude())
             
             // Prepare elevation provider for the small area around the point
@@ -209,8 +216,48 @@ class MainViewModel(private val repository: MainRepository) : ViewModel() {
                 elevationProvider.getElevation(p)
             } ?: return@launch
 
-            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect))
+            // Extract avalanche details
+            val regions = _regions.value?.features ?: emptyList()
+            val bulletins = _avalancheData.value ?: emptyList()
+            
+            val containingRegion = regions.find { 
+                GeometryUtils.isPointInGeometry(geoPoint, it.geometry) 
+            }
+            
+            var dangerLevel: String? = null
+            var problems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null
+            
+            if (containingRegion != null) {
+                val regionId = containingRegion.properties.id
+                val relevantBulletin = bulletins.find { bulletin -> 
+                    bulletin.regions.any { it.id == regionId } 
+                }
+                
+                if (relevantBulletin != null) {
+                    // 1. Get Danger Level
+                    dangerLevel = relevantBulletin.dangerRatings?.find { rating ->
+                        val rMin = AvalancheLogic.parseElevation(rating.elevation?.lowerBound)
+                        val rMax = AvalancheLogic.parseElevation(rating.elevation?.upperBound, true)
+                        elevation in rMin..rMax
+                    }?.mainValue ?: relevantBulletin.dangerRatings?.firstOrNull()?.mainValue
+
+                    // 2. Get Relevant Problems
+                    problems = relevantBulletin.avalancheProblems?.filter { problem ->
+                        val pMin = AvalancheLogic.parseElevation(problem.elevation?.lowerBound)
+                        val pMax = AvalancheLogic.parseElevation(problem.elevation?.upperBound, true)
+                        val elevMatch = elevation in pMin..pMax
+                        val aspectMatch = problem.aspects?.let { isAspectMatch(metrics.aspect, it) } ?: true
+                        elevMatch && aspectMatch
+                    }
+                }
+            }
+
+            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect, dangerLevel, problems))
         }
+    }
+
+    private fun isAspectMatch(currentAspect: String, validAspects: List<String>): Boolean {
+        return validAspects.contains(currentAspect)
     }
 
     fun clearPointInfo() {
