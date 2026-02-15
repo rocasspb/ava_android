@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Add 2D/3D toggle FAB to the map**
+- [x] **Track: Add 2D/3D toggle FAB to the map**
 *Link: [./tracks/view_toggle_2d_3d_20260215/](./tracks/view_toggle_2d_3d_20260215/)*
