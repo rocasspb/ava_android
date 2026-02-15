@@ -15,6 +15,7 @@ Freeriders, backcountry skiers and snowboarders, planning their routes according
 - Avalanche Bulletin Mode: Fetches and displays real-time avalanche danger levels from official bulletins.
 - Risk Mode: Highlights risky terrain based on danger level, elevation range, aspect, and steepness.
 - Custom Mode: Interactive tools to filter terrain based on elevation, slope angle, and aspect.
+- Real-time Location Tracking: Displays user position and heading on the map with a one-tap centering feature.
 
 ## Data & Sync
 - Current data update and synchronization logic is functional and meets requirements.

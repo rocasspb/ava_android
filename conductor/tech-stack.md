@@ -9,6 +9,7 @@
 - **Networking:** Retrofit & Gson
 - **Maps:** Mapbox Maps SDK for Android (with Mapbox Compose)
 - **Asynchronous Work:** Kotlin Coroutines & Lifecycle (ViewModel, LiveData)
+- **UI Components:** Material Icons Extended
 
 ## Testing
 - **Unit Testing:** JUnit, Robolectric
