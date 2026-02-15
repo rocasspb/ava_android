@@ -44,6 +44,9 @@ class MainViewModel(
     private val _initialCameraPosition = MutableLiveData<CameraOptions>()
     val initialCameraPosition: LiveData<CameraOptions> = _initialCameraPosition
 
+    private val _cameraPosition = MutableLiveData<CameraOptions>()
+    val cameraPosition: LiveData<CameraOptions> = _cameraPosition
+
     private val _regions = MutableLiveData<RegionResponse>()
     val regions: LiveData<RegionResponse> = _regions
 
@@ -160,6 +163,10 @@ class MainViewModel(
         if (_visualizationMode.value == VisualizationMode.CUSTOM) {
             calculateRules()
         }
+    }
+
+    fun updateCameraPosition(cameraOptions: CameraOptions) {
+        _cameraPosition.value = cameraOptions
     }
     
     fun calculateRules() {

@@ -67,6 +67,19 @@ class MainViewModelTest {
     }
 
     @Test
+    fun testUpdateCameraPosition() {
+        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val newPosition = com.mapbox.maps.CameraOptions.Builder()
+            .center(com.mapbox.geojson.Point.fromLngLat(12.0, 48.0))
+            .zoom(10.0)
+            .build()
+
+        viewModel.updateCameraPosition(newPosition)
+
+        assertEquals(newPosition, viewModel.cameraPosition.value)
+    }
+
+    @Test
     fun testFetchData() = runTest(testDispatcher) {
         val fakeRepo = FakeMainRepository()
         val viewModel = MainViewModel(fakeRepo, ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)

@@ -14,13 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.common.MapboxOptions
-import com.mapbox.maps.MapView
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
+import com.mapbox.maps.extension.compose.MapboxMap as MapboxMapCompose
+import com.mapbox.maps.extension.compose.MapEffect
+import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.mapbox.maps.extension.style.layers.addLayer
 import com.mapbox.maps.extension.style.layers.generated.RasterLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.ProjectionName
@@ -31,13 +32,9 @@ import com.mapbox.maps.extension.style.sources.generated.rasterDemSource
 import com.mapbox.maps.extension.style.sources.updateImage
 import com.mapbox.maps.extension.style.style
 import com.mapbox.maps.extension.style.terrain.generated.terrain
-import com.mapbox.maps.plugin.attribution.attribution
-import com.mapbox.maps.plugin.compass.compass
-import com.mapbox.maps.plugin.gestures.addOnMapClickListener
-import com.mapbox.maps.plugin.gestures.addOnMapLongClickListener
+import com.mapbox.maps.plugin.gestures.OnMapClickListener
+import com.mapbox.maps.plugin.gestures.OnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.gestures
-import com.mapbox.maps.plugin.logo.logo
-import com.mapbox.maps.plugin.scalebar.scalebar
 import com.mapbox.maps.toCameraOptions
 import com.rocasspb.avaawaand.logic.*
 import com.rocasspb.avaawaand.utils.AvalancheConfig.MAX_DISTANCE_PITCHED
@@ -53,7 +50,6 @@ import kotlin.math.min
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels { MainViewModel.Factory }
-    private var mapboxMap: MapboxMap? = null
     private var overlayJob: Job? = null
     private var isOverlayLoading by mutableStateOf(false)
 
@@ -178,152 +174,152 @@ class MainActivity : ComponentActivity() {
         val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
         val generationRules by viewModel.generationRules.observeAsState(emptyList())
 
-        var lastLoadedStyle by remember { mutableStateOf<String?>(null) }
-        var hasSetInitialCamera by remember { mutableStateOf(false) }
-
-        // Trigger overlay update when rules change
-        LaunchedEffect(generationRules) {
-            mapboxMap?.let { map ->
-                map.getStyle { style ->
-                    overlayRaster(map, generationRules, style)
-                }
+        val mapViewportState = rememberMapViewportState {
+            initialCameraPosition?.let {
+                setCameraOptions(it)
             }
         }
 
-        AndroidView(
-            factory = { ctx ->
-                MapView(ctx).apply {
-                    val map = this.mapboxMap
-                    this@MainActivity.mapboxMap = map
-                    
-                    map.subscribeCameraChanged {
-                        val rules = viewModel.generationRules.value ?: return@subscribeCameraChanged
-                        map.getStyle { style ->
-                            overlayRaster(map, rules, style)
-                        }
-                    }
-
-                    map.addOnMapLongClickListener { point ->
-                        viewModel.getPointInfo(point, map.cameraState.zoom)
-                        true
-                    }
-
-                    map.addOnMapClickListener {
-                        viewModel.clearPointInfo()
-                        false
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-            update = { mapView ->
-                val map = mapView.mapboxMap
-                
-                initialCameraPosition?.let {
-                    if (!hasSetInitialCamera) {
-                        map.setCamera(it)
-                        hasSetInitialCamera = true
-                    }
-                }
-
-                if (lastLoadedStyle != mapStyleUrl) {
-                    lastLoadedStyle = mapStyleUrl
-                    map.loadStyle(
-                        styleExtension = style(mapStyleUrl) {
-                            val demSourceId = "dem-source"
-                            +rasterDemSource(demSourceId) {
-                                url("mapbox://mapbox.mapbox-terrain-dem-v1")
-                                tileSize(514)
-                            }
-                            +terrain(demSourceId)
-                            +projection(ProjectionName.GLOBE)
-                        }
-                    ) { style ->
-                        mapView.compass.enabled = false
-                        mapView.scalebar.enabled = false
-                        mapView.logo.enabled = true
-                        mapView.attribution.enabled = true
-                        mapView.gestures.pitchEnabled = true
-                        
-                        overlayRaster(map, generationRules, style)
-                    }
-                }
+        // Sync viewport state back to ViewModel for persistence
+        LaunchedEffect(mapViewportState.cameraState) {
+            mapViewportState.cameraState?.let {
+                viewModel.updateCameraPosition(it.toCameraOptions())
             }
-        )
-    }
+        }
 
-    private fun overlayRaster(map: MapboxMap, rules: List<GenerationRule>, style: Style) {
-        if (rules.isEmpty()) return
+        var overlayBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+        var overlayCoords by remember { mutableStateOf<List<List<Double>>?>(null) }
+        var mapboxMapInstance by remember { mutableStateOf<MapboxMap?>(null) }
+        var styleLoadedCount by remember { mutableStateOf(0) }
 
-        val cameraState = map.cameraState
-        val bounds = map.coordinateBoundsForCamera(cameraState.toCameraOptions())
-        val center = cameraState.center
-        val maxDelta = if (cameraState.pitch > 30) MAX_DISTANCE_PITCHED else 10.0
+        // Trigger overlay update when rules, camera, or map instance change
+        LaunchedEffect(generationRules, mapViewportState.cameraState, mapboxMapInstance) {
+            val map = mapboxMapInstance ?: return@LaunchedEffect
+            val cameraState = mapViewportState.cameraState ?: return@LaunchedEffect
+            if (generationRules.isEmpty()) {
+                overlayBitmap = null
+                return@LaunchedEffect
+            }
 
-        val renderBounds = GeometryUtils.Bounds(
-            max(bounds.west(), center.longitude() - maxDelta),
-            min(bounds.east(), center.longitude() + maxDelta),
-            max(bounds.south(), center.latitude() - maxDelta),
-            min(bounds.north(), center.latitude() + maxDelta)
-        )
-        val zoom = cameraState.zoom
+            val bounds = map.coordinateBoundsForCamera(cameraState.toCameraOptions())
+            val center = cameraState.center
+            val maxDelta = if (cameraState.pitch > 30) MAX_DISTANCE_PITCHED else 10.0
 
-        overlayJob?.cancel()
-        isOverlayLoading = true
-        overlayJob = lifecycleScope.launch(Dispatchers.Default) {
-            try {
-                val provider = TerrainRgbElevationProvider()
-                provider.prepare(renderBounds, zoom)
+            val renderBounds = GeometryUtils.Bounds(
+                max(bounds.west(), center.longitude() - maxDelta),
+                min(bounds.east(), center.longitude() + maxDelta),
+                max(bounds.south(), center.latitude() - maxDelta),
+                min(bounds.north(), center.latitude() + maxDelta)
+            )
+            val zoom = cameraState.zoom
 
-                val bitmap = RasterGenerator.drawToBitmap(rules, renderBounds, provider) ?: return@launch
+            overlayJob?.cancel()
+            isOverlayLoading = true
+            overlayJob = lifecycleScope.launch(Dispatchers.Default) {
+                try {
+                    val provider = TerrainRgbElevationProvider()
+                    provider.prepare(renderBounds, zoom)
 
-                withContext(Dispatchers.Main) {
-                    if (style.isStyleLoaded()) {
-                        val sourceId = "avalanche-source"
-                        val layerId = "avalanche-layer"
-
-                        if (style.styleSourceExists(sourceId)) {
-                            style.removeStyleLayer(layerId)
-                            style.removeStyleSource(sourceId)
-                        }
-
+                    val bitmap = RasterGenerator.drawToBitmap(generationRules, renderBounds, provider)
+                    if (bitmap != null) {
                         val coords = listOf(
                             listOf(renderBounds.minLng, renderBounds.maxLat),
                             listOf(renderBounds.maxLng, renderBounds.maxLat),
                             listOf(renderBounds.maxLng, renderBounds.minLat),
                             listOf(renderBounds.minLng, renderBounds.minLat)
                         )
-
-                        val imageSource = ImageSource.Builder(sourceId)
-                            .coordinates(coords)
-                            .build()
-                        style.addSource(imageSource)
-                        imageSource.updateImage(bitmap)
-
-                        val layer = RasterLayer(layerId, sourceId)
-                        layer.rasterOpacity(0.7)
-                        style.addLayer(layer)
+                        withContext(Dispatchers.Main) {
+                            overlayBitmap = bitmap
+                            overlayCoords = coords
+                        }
+                    }
+                } finally {
+                    withContext(Dispatchers.Main) {
+                        isOverlayLoading = false
                     }
                 }
-            } finally {
-                withContext(Dispatchers.Main) {
-                    isOverlayLoading = false
+            }
+        }
+
+        MapboxMapCompose(
+            modifier = Modifier.fillMaxSize(),
+            mapViewportState = mapViewportState,
+            onMapClickListener = OnMapClickListener {
+                viewModel.clearPointInfo()
+                false
+            },
+            onMapLongClickListener = OnMapLongClickListener { point ->
+                mapViewportState.cameraState?.let {
+                    viewModel.getPointInfo(point, it.zoom)
                 }
+                true
+            }
+        ) {
+            MapEffect(mapStyleUrl) { mapView ->
+                val map = mapView.mapboxMap
+                mapboxMapInstance = map
+                
+                map.loadStyle(
+                    styleExtension = style(mapStyleUrl) {
+                        val demSourceId = "dem-source"
+                        +rasterDemSource(demSourceId) {
+                            url("mapbox://mapbox.mapbox-terrain-dem-v1")
+                            tileSize(514)
+                        }
+                        +terrain(demSourceId)
+                        +projection(ProjectionName.GLOBE)
+                    }
+                ) {
+                    mapView.gestures.pitchEnabled = true
+                    styleLoadedCount++
+                }
+            }
+
+            MapEffect(overlayBitmap, overlayCoords, styleLoadedCount) { mapView ->
+                val style = mapView.mapboxMap.style ?: return@MapEffect
+                val bitmap = overlayBitmap
+                val coords = overlayCoords
+
+                val sourceId = "avalanche-source"
+                val layerId = "avalanche-layer"
+
+                if (bitmap == null || coords == null) {
+                    if (style.styleSourceExists(sourceId)) {
+                        style.removeStyleLayer(layerId)
+                        style.removeStyleSource(sourceId)
+                    }
+                    return@MapEffect
+                }
+
+                if (style.styleSourceExists(sourceId)) {
+                    style.removeStyleLayer(layerId)
+                    style.removeStyleSource(sourceId)
+                }
+
+                val imageSource = ImageSource.Builder(sourceId)
+                    .coordinates(coords)
+                    .build()
+                style.addSource(imageSource)
+                imageSource.updateImage(bitmap)
+
+                val layer = RasterLayer(layerId, sourceId)
+                layer.rasterOpacity(0.7)
+                style.addLayer(layer)
             }
         }
     }
 
     override fun onPause() {
         super.onPause()
-        val map = mapboxMap ?: return
-        val camera = map.cameraState
-        val target = camera.center
+        val camera = viewModel.cameraPosition.value ?: return
+        val target = camera.center ?: return
         val mode = viewModel.visualizationMode.value ?: VisualizationMode.BULLETIN
         
         val prefs = getPreferences(MODE_PRIVATE)
         prefs.edit {
             putFloat("lat", target.latitude().toFloat())
             putFloat("lon", target.longitude().toFloat())
-            putFloat("zoom", camera.zoom.toFloat())
+            putFloat("zoom", camera.zoom?.toFloat() ?: 8f)
             putString("mode", mode.name)
         }
     }
