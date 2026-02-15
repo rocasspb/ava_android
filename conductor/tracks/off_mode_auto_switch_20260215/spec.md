@@ -17,8 +17,8 @@ This track adds an "Off" mode for a clean map view and introduces intelligent mo
 - **Logic Optimization:**
     - Disable raster generation and terrain elevation fetching when in `OFF` mode.
 - **Auto-Switching Logic:**
-    - **Zoom In:** If current mode is `BULLETIN` and zoom level reaches **14.0 or higher**, automatically switch to `RISK` mode.
-    - **Zoom Out:** If current mode is `RISK` or `CUSTOM` and zoom level drops **below 14.0**, automatically switch back to `BULLETIN` mode.
+    - **Zoom In:** If current mode is `BULLETIN` and zoom level reaches **10.0 or higher**, automatically switch to `RISK` mode.
+    - **Zoom Out:** If current mode is `RISK` or `CUSTOM` and zoom level drops **below 10.0**, automatically switch back to `BULLETIN` mode.
 - **User Manual Override:** User manual mode changes do not disable auto-switching; it triggers on every threshold crossing.
 
 ## Non-Functional Requirements
@@ -27,8 +27,8 @@ This track adds an "Off" mode for a clean map view and introduces intelligent mo
 
 ## Acceptance Criteria
 - [ ] "Off" mode is selectable and removes the overlay.
-- [ ] Zooming in to 14.0+ switches `BULLETIN` -> `RISK`.
-- [ ] Zooming out below 14.0 switches `RISK`/`CUSTOM` -> `BULLETIN`.
+- [ ] Zooming in to 10.0+ switches `BULLETIN` -> `RISK`.
+- [ ] Zooming out below 10.0 switches `RISK`/`CUSTOM` -> `BULLETIN`.
 - [ ] No background raster generation occurs in "Off" mode.
 - [ ] The default mode remains "Bulletin".
 

@@ -3,6 +3,7 @@
     <string name="mode_bulletin">Bulletin</string>
     <string name="mode_risk">Risk</string>
     <string name="mode_custom">Custom</string>
+    <string name="mode_off">Off</string>
     <string name="select_mode">Select Mode</string>
     <string name="close_panel">Close Panel</string>
     <string name="icon_bulletin">Bulletin Icon</string>

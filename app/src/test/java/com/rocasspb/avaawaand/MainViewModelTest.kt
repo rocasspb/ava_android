@@ -3,6 +3,7 @@ package com.rocasspb.avaawaand
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.gson.Gson
 import com.mapbox.maps.Style
+import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.AvalancheResponse
 import com.rocasspb.avaawaand.data.Geometry
@@ -77,6 +78,46 @@ class MainViewModelTest {
         viewModel.updateCameraPosition(newPosition)
 
         assertEquals(newPosition, viewModel.cameraPosition.value)
+    }
+
+    @Test
+    fun testAutoSwitchingZoomIn() {
+        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        viewModel.setVisualizationMode(VisualizationMode.BULLETIN)
+
+        val newPosition = com.mapbox.maps.CameraOptions.Builder()
+            .zoom(10.5)
+            .build()
+        viewModel.updateCameraPosition(newPosition)
+
+        assertEquals(VisualizationMode.RISK, viewModel.visualizationMode.value)
+    }
+
+    @Test
+    fun testAutoSwitchingZoomOut() {
+        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        
+        // Test RISK -> BULLETIN
+        viewModel.setVisualizationMode(VisualizationMode.RISK)
+        viewModel.updateCameraPosition(com.mapbox.maps.CameraOptions.Builder().zoom(9.5).build())
+        assertEquals(VisualizationMode.BULLETIN, viewModel.visualizationMode.value)
+
+        // Test CUSTOM -> BULLETIN
+        viewModel.setVisualizationMode(VisualizationMode.CUSTOM)
+        viewModel.updateCameraPosition(com.mapbox.maps.CameraOptions.Builder().zoom(9.0).build())
+        assertEquals(VisualizationMode.BULLETIN, viewModel.visualizationMode.value)
+    }
+
+    @Test
+    fun testOffModeIgnoresZoom() {
+        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        viewModel.setVisualizationMode(VisualizationMode.OFF)
+
+        viewModel.updateCameraPosition(com.mapbox.maps.CameraOptions.Builder().zoom(15.0).build())
+        assertEquals(VisualizationMode.OFF, viewModel.visualizationMode.value)
+
+        viewModel.updateCameraPosition(com.mapbox.maps.CameraOptions.Builder().zoom(10.0).build())
+        assertEquals(VisualizationMode.OFF, viewModel.visualizationMode.value)
     }
 
     @Test

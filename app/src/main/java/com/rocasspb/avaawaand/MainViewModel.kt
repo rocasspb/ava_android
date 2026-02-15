@@ -170,6 +170,22 @@ class MainViewModel(
 
     fun updateCameraPosition(cameraOptions: CameraOptions) {
         _cameraPosition.value = cameraOptions
+        cameraOptions.zoom?.let { handleZoomChange(it) }
+    }
+
+    private fun handleZoomChange(zoom: Double) {
+        val currentMode = _visualizationMode.value ?: return
+        if (currentMode == VisualizationMode.OFF) return
+
+        if (zoom >= 10.0) {
+            if (currentMode == VisualizationMode.BULLETIN) {
+                setVisualizationMode(VisualizationMode.RISK)
+            }
+        } else {
+            if (currentMode == VisualizationMode.RISK || currentMode == VisualizationMode.CUSTOM) {
+                setVisualizationMode(VisualizationMode.BULLETIN)
+            }
+        }
     }
     
     fun calculateRules() {
@@ -178,6 +194,11 @@ class MainViewModel(
              val bulletins = _avalancheData.value ?: return@launch
              val regions = _regions.value ?: return@launch
              val currentMode = _visualizationMode.value ?: VisualizationMode.BULLETIN
+
+             if (currentMode == VisualizationMode.OFF) {
+                 _generationRules.postValue(emptyList())
+                 return@launch
+             }
 
              if(currentMode == VisualizationMode.CUSTOM) {
                  val customParams = _customModeParams.value ?: CustomModeParams()

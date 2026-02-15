@@ -251,6 +251,7 @@ class MainActivity : ComponentActivity() {
                             VisualizationMode.BULLETIN -> R.drawable.ic_bulletin
                             VisualizationMode.RISK -> R.drawable.ic_landscape
                             VisualizationMode.CUSTOM -> R.drawable.ic_custom
+                            VisualizationMode.OFF -> R.drawable.ic_close // Use ic_close as placeholder for now
                         }
                         Icon(
                             painter = painterResource(id = iconRes),
