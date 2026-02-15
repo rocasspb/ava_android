@@ -1,5 +1,6 @@
 package com.rocasspb.avaawaand
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,7 +23,12 @@ import java.util.*
 @Composable
 fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modifier) {
     val configuration = LocalConfiguration.current
-    val maxHeight = configuration.screenHeightDp.dp / 2
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val maxHeight = if (isLandscape) {
+        configuration.screenHeightDp.dp - 32.dp // Full height minus padding
+    } else {
+        configuration.screenHeightDp.dp / 2
+    }
 
     Card(
         modifier = modifier
