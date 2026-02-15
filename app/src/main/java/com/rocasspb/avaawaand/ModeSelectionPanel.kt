@@ -82,7 +82,7 @@ fun ModeSelectionPanel(
                 )
                 ModeOption(
                     isSelected = visualizationMode == VisualizationMode.OFF,
-                    iconRes = R.drawable.ic_close,
+                    iconRes = R.drawable.ic_off,
                     label = stringResource(R.string.mode_off),
                     onClick = { viewModel.setVisualizationMode(VisualizationMode.OFF) }
                 )
