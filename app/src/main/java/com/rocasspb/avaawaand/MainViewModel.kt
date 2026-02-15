@@ -68,7 +68,7 @@ class MainViewModel(
         val elevation: Int,
         val slope: Double,
         val aspect: String,
-        val dangerLevel: String? = null,
+        val dangerRatings: List<com.rocasspb.avaawaand.data.DangerRating>? = null,
         val avalancheProblems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null
     )
 
@@ -224,37 +224,38 @@ class MainViewModel(
                 GeometryUtils.isPointInGeometry(geoPoint, it.geometry) 
             }
             
-            var dangerLevel: String? = null
+            var dangerRatings: List<com.rocasspb.avaawaand.data.DangerRating>? = null
             var problems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null
             
             if (containingRegion != null) {
                 val regionId = containingRegion.properties.id
                 val relevantBulletin = bulletins.find { bulletin -> 
-                    bulletin.regions.any { it.id == regionId } 
+                    bulletin.regions.any { it.id.startsWith(regionId) }
                 }
                 
                 if (relevantBulletin != null) {
-                    // 1. Get Danger Level
-                    dangerLevel = relevantBulletin.dangerRatings?.find { rating ->
-                        val rMin = AvalancheLogic.parseElevation(rating.elevation?.lowerBound)
-                        val rMax = AvalancheLogic.parseElevation(rating.elevation?.upperBound, true)
-                        elevation in rMin..rMax
-                    }?.mainValue ?: relevantBulletin.dangerRatings?.firstOrNull()?.mainValue
-
-                    // 2. Get Relevant Problems
-                    problems = relevantBulletin.avalancheProblems?.filter { problem ->
-                        val pMin = AvalancheLogic.parseElevation(problem.elevation?.lowerBound)
-                        val pMax = AvalancheLogic.parseElevation(problem.elevation?.upperBound, true)
-                        val elevMatch = elevation in pMin..pMax
-                        val aspectMatch = problem.aspects?.let { isAspectMatch(metrics.aspect, it) } ?: true
-                        elevMatch && aspectMatch
+                    // 1. Get all Danger Ratings, sorted high to low
+                    dangerRatings = relevantBulletin.dangerRatings?.sortedByDescending { 
+                        getDangerNumericValue(it.mainValue) 
                     }
-                    
-                    Log.d("MainViewModel", "PointInfo: elev=$elevation, slope=${metrics.slope}, aspect=${metrics.aspect}, danger=$dangerLevel, problems=${problems?.size}")
+
+                    // 2. Get all Problems
+                    problems = relevantBulletin.avalancheProblems
                 }
             }
 
-            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect, dangerLevel, problems))
+            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect, dangerRatings, problems))
+        }
+    }
+
+    private fun getDangerNumericValue(dangerLevel: String): Int {
+        return when (dangerLevel.lowercase()) {
+            "low", "1" -> 1
+            "moderate", "2" -> 2
+            "considerable", "3" -> 3
+            "high", "4" -> 4
+            "very_high", "5" -> 5
+            else -> 0
         }
     }
 

@@ -53,7 +53,7 @@ class PointInfoDetailedTest {
     }
 
     @Test
-    fun `getPointInfo should include danger level and relevant avalanche problems`() = runTest {
+    fun `getPointInfo should include all danger levels and avalanche problems`() = runTest {
         val regionId = "AT-07-23-02"
         val testPoint = Point.fromLngLat(11.77, 47.26)
         
@@ -94,7 +94,10 @@ class PointInfoDetailedTest {
             validTime = ValidTime("2026-02-13T12:00:00Z", "2026-02-14T12:00:00Z"),
             avalancheActivity = null,
             snowpackStructure = null,
-            dangerRatings = listOf(DangerRating(mainValue = "considerable", validTimePeriod = "all_day", elevation = null)),
+            dangerRatings = listOf(
+                DangerRating(mainValue = "moderate", validTimePeriod = "all_day", elevation = Elevation(null, "2000")),
+                DangerRating(mainValue = "considerable", validTimePeriod = "all_day", elevation = Elevation("2000", null))
+            ),
             avalancheProblems = listOf(avalancheProblem),
             tendency = null,
             weatherForecast = null,
@@ -123,7 +126,12 @@ class PointInfoDetailedTest {
         // Assert
         val info = viewModel.pointInfo.value
         assertNotNull("PointInfo should not be null", info)
-        assertEquals("considerable", info?.dangerLevel)
+        assertNotNull("Danger ratings should not be null", info?.dangerRatings)
+        assertEquals(2, info?.dangerRatings?.size)
+        // Check sorting (considerable > moderate)
+        assertEquals("considerable", info?.dangerRatings?.get(0)?.mainValue)
+        assertEquals("moderate", info?.dangerRatings?.get(1)?.mainValue)
+
         assertNotNull("Avalanche problems should not be null", info?.avalancheProblems)
         assertEquals(1, info?.avalancheProblems?.size)
         assertEquals("persistent_weak_layers", info?.avalancheProblems?.get(0)?.problemType)
