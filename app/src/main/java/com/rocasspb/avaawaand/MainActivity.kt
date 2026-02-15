@@ -394,21 +394,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun formatElevationRange(lower: String?, upper: String?): String? {
-        fun formatValue(v: String?): String? {
-            if (v == null) return null
-            return if (v.lowercase() == "treeline") "Treeline" else "${v}m"
-        }
-        val l = formatValue(lower)
-        val u = formatValue(upper)
-        return when {
-            l != null && u != null -> "$l - $u"
-            l != null -> "> $l"
-            u != null -> "< $u"
-            else -> null
-        }
-    }
-
     @Composable
     private fun InfoItem(label: String, value: String) {
         Column {
@@ -426,8 +411,8 @@ class MainActivity : ComponentActivity() {
             Icon(
                 painter = painterResource(id = getProblemIcon(problem.problemType)),
                 contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = Color.Black
+                modifier = Modifier.size(32.dp),
+                tint = Color.Unspecified
             )
             Spacer(modifier = Modifier.width(8.dp))
             Column {
@@ -462,6 +447,21 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+
+    private fun formatElevationRange(lower: String?, upper: String?): String? {
+        fun formatValue(v: String?): String? {
+            if (v == null) return null
+            return if (v.lowercase() == "treeline") "Treeline" else "${v}m"
+        }
+        val l = formatValue(lower)
+        val u = formatValue(upper)
+        return when {
+            l != null && u != null -> "$l - $u"
+            l != null -> "> $l"
+            u != null -> "< $u"
+            else -> null
         }
     }
 
