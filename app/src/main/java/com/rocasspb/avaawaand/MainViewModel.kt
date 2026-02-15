@@ -68,6 +68,9 @@ class MainViewModel(
     private val _pointInfo = MutableLiveData<PointInfo?>()
     val pointInfo: LiveData<PointInfo?> = _pointInfo
 
+    private val _locationPermissionGranted = MutableLiveData<Boolean>(false)
+    val locationPermissionGranted: LiveData<Boolean> = _locationPermissionGranted
+
     data class PointInfo(
         val elevation: Int,
         val slope: Double,
@@ -269,6 +272,10 @@ class MainViewModel(
 
     fun clearPointInfo() {
         _pointInfo.value = null
+    }
+
+    fun setLocationPermissionGranted(granted: Boolean) {
+        _locationPermissionGranted.value = granted
     }
 
     companion object {

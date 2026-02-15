@@ -2,19 +2,26 @@ package com.rocasspb.avaawaand
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.common.MapboxOptions
 import com.mapbox.maps.MapboxMap
@@ -35,6 +42,13 @@ import com.mapbox.maps.extension.style.terrain.generated.terrain
 import com.mapbox.maps.plugin.gestures.OnMapClickListener
 import com.mapbox.maps.plugin.gestures.OnMapLongClickListener
 import com.mapbox.maps.plugin.gestures.gestures
+import androidx.activity.compose.setContent
+import androidx.activity.viewModels
+import com.mapbox.maps.plugin.locationcomponent.location
+import com.mapbox.maps.plugin.locationcomponent.createDefault2DPuck
+import com.mapbox.maps.plugin.PuckBearing
+import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
+import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateBearing
 import com.mapbox.maps.toCameraOptions
 import com.rocasspb.avaawaand.logic.*
 import com.rocasspb.avaawaand.utils.AvalancheConfig.MAX_DISTANCE_PITCHED
@@ -80,12 +94,51 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     fun MainScreen(viewModel: MainViewModel) {
+        val context = LocalContext.current
+        val locationPermissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                    permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+            viewModel.setLocationPermissionGranted(granted)
+        }
+
+        LaunchedEffect(Unit) {
+            val hasFineLocation = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            val hasCoarseLocation = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasFineLocation || hasCoarseLocation) {
+                viewModel.setLocationPermissionGranted(true)
+            } else {
+                locationPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        }
+
         val visualizationMode by viewModel.visualizationMode.observeAsState(VisualizationMode.BULLETIN)
         val pointInfo by viewModel.pointInfo.observeAsState()
+        val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
+        val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
         var showModePanel by remember { mutableStateOf(false) }
 
+        val mapViewportState = rememberMapViewportState {
+            initialCameraPosition?.let {
+                setCameraOptions(it)
+            }
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
-            MapContent(viewModel)
+            MapContent(viewModel, mapViewportState)
 
             Column(
                 modifier = Modifier
@@ -122,6 +175,32 @@ class MainActivity : ComponentActivity() {
                 horizontalAlignment = Alignment.End
             ) {
                 if (!showModePanel) {
+                    if (locationPermissionGranted) {
+                        FloatingActionButton(
+                            onClick = {
+                                val currentBearing = mapViewportState.cameraState?.bearing ?: 0.0
+                                val currentPitch = mapViewportState.cameraState?.pitch ?: 0.0
+                                mapViewportState.transitionToFollowPuckState(
+                                    FollowPuckViewportStateOptions.Builder()
+                                        .bearing(FollowPuckViewportStateBearing.Constant(currentBearing))
+                                        .pitch(currentPitch)
+                                        .zoom(12.0)
+                                        .build()
+                                )
+                            },
+                            containerColor = Color.White,
+                            contentColor = Color(0xFF5F6368),
+                            modifier = Modifier.padding(bottom = 12.dp),
+                            shape = CircleShape
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MyLocation,
+                                contentDescription = "My Location",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
                     FloatingActionButton(
                         onClick = { viewModel.toggleMapStyle() },
                         containerColor = Color.White,
@@ -169,16 +248,10 @@ class MainActivity : ComponentActivity() {
     }
 
     @Composable
-    fun MapContent(viewModel: MainViewModel) {
+    fun MapContent(viewModel: MainViewModel, mapViewportState: com.mapbox.maps.extension.compose.animation.viewport.MapViewportState) {
         val mapStyleUrl by viewModel.mapStyleUrl.observeAsState(Style.OUTDOORS)
-        val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
         val generationRules by viewModel.generationRules.observeAsState(emptyList())
-
-        val mapViewportState = rememberMapViewportState {
-            initialCameraPosition?.let {
-                setCameraOptions(it)
-            }
-        }
+        val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
 
         // Sync viewport state back to ViewModel for persistence
         LaunchedEffect(mapViewportState.cameraState) {
@@ -255,6 +328,15 @@ class MainActivity : ComponentActivity() {
                 true
             }
         ) {
+            MapEffect(locationPermissionGranted) { mapView ->
+                mapView.location.apply {
+                    enabled = locationPermissionGranted
+                    locationPuck = createDefault2DPuck(withBearing = true)
+                    puckBearingEnabled = true
+                    puckBearing = PuckBearing.HEADING
+                }
+            }
+
             MapEffect(mapStyleUrl) { mapView ->
                 val map = mapView.mapboxMap
                 mapboxMapInstance = map
