@@ -34,7 +34,6 @@ import kotlin.math.max
 class MainViewModel(
     private val repository: MainRepository,
     private val elevationProvider: TerrainRgbElevationProvider = TerrainRgbElevationProvider(),
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
@@ -258,10 +257,6 @@ class MainViewModel(
             "very_high", "5" -> 5
             else -> 0
         }
-    }
-
-    private fun isAspectMatch(currentAspect: String, validAspects: List<String>): Boolean {
-        return validAspects.contains(currentAspect)
     }
 
     fun clearPointInfo() {
