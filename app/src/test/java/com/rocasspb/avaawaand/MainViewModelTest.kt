@@ -5,8 +5,13 @@ import com.google.gson.Gson
 import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.AvalancheResponse
+import com.rocasspb.avaawaand.data.Geometry
 import com.rocasspb.avaawaand.data.MainRepository
+import com.rocasspb.avaawaand.data.Region
+import com.rocasspb.avaawaand.data.RegionFeature
+import com.rocasspb.avaawaand.data.RegionProperties
 import com.rocasspb.avaawaand.data.RegionResponse
+import com.rocasspb.avaawaand.data.ValidTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -20,9 +25,14 @@ import org.junit.Assert.assertNotNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import java.util.Collections
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLog
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class MainViewModelTest {
 
     @get:Rule
@@ -33,6 +43,7 @@ class MainViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
+        ShadowLog.stream = System.out
     }
 
     @After
@@ -64,11 +75,11 @@ class MainViewModelTest {
         advanceUntilIdle()
 
         val regions = viewModel.regions.value
-        assertNotNull(regions)
+        assertNotNull("Regions should not be null", regions)
         assertEquals("FeatureCollection", regions?.type)
 
         val avalancheData = viewModel.avalancheData.value
-        assertNotNull(avalancheData)
+        assertNotNull("Avalanche data should not be null", avalancheData)
     }
 
     @Test
@@ -119,11 +130,28 @@ class FakeMainRepository : MainRepository {
     private var persistedAvalanche: AvalancheResponse? = null
 
     override suspend fun getRegions(): RegionResponse {
-        return RegionResponse("FeatureCollection", emptyList())
+        return RegionResponse("FeatureCollection", listOf(
+            RegionFeature("Feature", RegionProperties("test-id", "2024-01-01", null), 
+                Geometry("MultiPolygon", emptyList()))
+        ))
     }
 
     override suspend fun getAvalancheData(): AvalancheResponse {
-        return AvalancheResponse(emptyList())
+        return AvalancheResponse(listOf(
+            AvalancheData(
+                bulletinID = "bulletin-id",
+                publicationTime = "2024-01-01T00:00:00Z",
+                validTime = ValidTime("2024-01-01T00:00:00Z", "2024-01-02T00:00:00Z"),
+                avalancheActivity = null,
+                snowpackStructure = null,
+                dangerRatings = null,
+                avalancheProblems = null,
+                tendency = null,
+                weatherForecast = null,
+                weatherReview = null,
+                regions = listOf(Region("test-id", "Test Region"))
+            )
+        ))
     }
 
     override fun getPersistedRegions(): RegionResponse? = persistedRegions
