@@ -1,8 +1,0 @@
-{
-  "track_id": "off_mode_auto_switch_20260215",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-02-15T18:00:00Z",
-  "updated_at": "2026-02-15T18:00:00Z",
-  "description": "Add Off mode and auto-switching visualization based on zoom"
-}
