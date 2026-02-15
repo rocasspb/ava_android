@@ -23,6 +23,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.common.MapboxOptions
+import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapboxMap as MapboxMapCompose
@@ -135,6 +136,7 @@ class MainActivity : ComponentActivity() {
                 setCameraOptions(it)
             }
         }
+        val coroutineScope = rememberCoroutineScope()
 
         Box(modifier = Modifier.fillMaxSize()) {
             MapContent(viewModel, mapViewportState)
@@ -198,6 +200,31 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.size(24.dp)
                             )
                         }
+                    }
+
+                    val currentPitch = mapViewportState.cameraState?.pitch ?: 0.0
+                    val is3D = currentPitch > 0.0
+
+                    FloatingActionButton(
+                        onClick = {
+                            coroutineScope.launch {
+                                mapViewportState.easeTo(
+                                    CameraOptions.Builder()
+                                        .pitch(if (is3D) 0.0 else 60.0)
+                                        .build()
+                                )
+                            }
+                        },
+                        containerColor = Color.White,
+                        contentColor = Color(0xFF5F6368),
+                        modifier = Modifier.padding(bottom = 12.dp),
+                        shape = CircleShape
+                    ) {
+                        Text(
+                            text = if (is3D) "2D" else "3D",
+                            style = MaterialTheme.typography.labelLarge,
+                            modifier = Modifier.padding(horizontal = 8.dp)
+                        )
                     }
 
                     FloatingActionButton(
