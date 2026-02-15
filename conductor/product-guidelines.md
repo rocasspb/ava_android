@@ -7,7 +7,7 @@
 - **Integrated Safety Information:** Safety warnings and risk assessments are seamlessly integrated into the data visualization (e.g., using color-coded risk levels) to provide immediate context without interrupting the user flow.
 
 ## Visual Identity
-- **Iconography:** Adhere strictly to Material Design system icons to maintain a consistent and familiar Android experience.
+- **Iconography:** Use official EAWS (European Avalanche Warning Services) symbols for avalanche danger levels and problems to ensure standardized safety communication. Adhere to Material Design system icons for general UI navigation and actions.
 - **Measurements:** Use the Metric System (meters and degrees) as the primary units for elevation and slope.
 
 ## Accessibility
