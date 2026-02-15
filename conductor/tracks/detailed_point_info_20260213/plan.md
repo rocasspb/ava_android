@@ -1,10 +1,10 @@
 # Implementation Plan: Detailed Avalanche Data in PointInfoCard
 
-## Phase 1: Data Extraction & ViewModel Logic
+## Phase 1: Data Extraction & ViewModel Logic [checkpoint: be9c2ba]
 - [x] Task: Update `MainViewModel` to expose selected point avalanche data [a5fae79]
     - [x] Add state for the currently selected map point and its associated avalanche info.
     - [x] Implement logic to filter `AvalancheData` based on the coordinates' elevation and aspect.
-- [ ] Task: Conductor - User Manual Verification 'Data Extraction & ViewModel Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Data Extraction & ViewModel Logic' (Protocol in workflow.md) [be9c2ba]
 
 ## Phase 2: UI Implementation
 - [ ] Task: Create/Update `PointInfoCard` Compose component
