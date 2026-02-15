@@ -3,8 +3,8 @@
 Refactor the map implementation to use the official Mapbox Maps Compose SDK for a more declarative and idiomatic integration.
 
 ## Phase 1: Preparation and Environment Verification
-- [ ] Task: Verify Mapbox Compose SDK dependency and availability.
-- [ ] Task: Conduct a brief research on `MapboxMap` composable and `MapViewportState` usage in version 11.x.
+- [x] Task: Verify Mapbox Compose SDK dependency and availability.
+- [x] Task: Conduct a brief research on `MapboxMap` composable and `MapViewportState` usage in version 11.x.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Preparation' (Protocol in workflow.md)
 
 ## Phase 2: Refactor Camera and State Management
