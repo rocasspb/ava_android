@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Implement Detailed Avalanche Data in PointInfoCard**
+- [x] **Track: Implement Detailed Avalanche Data in PointInfoCard**
   *Link: [./tracks/detailed_point_info_20260213/](./tracks/detailed_point_info_20260213/)*
