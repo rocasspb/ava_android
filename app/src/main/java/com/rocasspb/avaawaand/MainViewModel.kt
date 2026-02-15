@@ -34,6 +34,7 @@ import kotlin.math.max
 class MainViewModel(
     private val repository: MainRepository,
     private val elevationProvider: TerrainRgbElevationProvider = TerrainRgbElevationProvider(),
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
