@@ -249,6 +249,8 @@ class MainViewModel(
                         val aspectMatch = problem.aspects?.let { isAspectMatch(metrics.aspect, it) } ?: true
                         elevMatch && aspectMatch
                     }
+                    
+                    Log.d("MainViewModel", "PointInfo: elev=$elevation, slope=${metrics.slope}, aspect=${metrics.aspect}, danger=$dangerLevel, problems=${problems?.size}")
                 }
             }
 
