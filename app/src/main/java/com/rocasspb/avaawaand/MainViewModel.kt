@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.Style
+import com.rocasspb.avaawaand.data.AvalancheActivity
 import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.MainRepositoryImpl
@@ -69,7 +70,8 @@ class MainViewModel(
         val slope: Double,
         val aspect: String,
         val dangerRatings: List<com.rocasspb.avaawaand.data.DangerRating>? = null,
-        val avalancheProblems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null
+        val avalancheProblems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null,
+        val avalancheActivity: AvalancheActivity? = null
     )
 
     private var calculationJob: Job? = null
@@ -226,6 +228,7 @@ class MainViewModel(
             
             var dangerRatings: List<com.rocasspb.avaawaand.data.DangerRating>? = null
             var problems: List<com.rocasspb.avaawaand.data.AvalancheProblem>? = null
+            var avalancheActivity: AvalancheActivity? = null
             
             if (containingRegion != null) {
                 val regionId = containingRegion.properties.id
@@ -234,17 +237,15 @@ class MainViewModel(
                 }
                 
                 if (relevantBulletin != null) {
-                    // 1. Get all Danger Ratings, sorted high to low
-                    dangerRatings = relevantBulletin.dangerRatings?.sortedByDescending { 
+                    avalancheActivity = relevantBulletin.avalancheActivity
+                    dangerRatings = relevantBulletin.dangerRatings?.sortedByDescending {
                         getDangerNumericValue(it.mainValue) 
                     }
-
-                    // 2. Get all Problems
                     problems = relevantBulletin.avalancheProblems
                 }
             }
 
-            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect, dangerRatings, problems))
+            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect, dangerRatings, problems, avalancheActivity))
         }
     }
 

@@ -1,27 +1,42 @@
 package com.rocasspb.avaawaand
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.*
 
 @Composable
 fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modifier) {
+    val configuration = LocalConfiguration.current
+    val maxHeight = configuration.screenHeightDp.dp / 2
+
     Card(
-        modifier = modifier.widthIn(max = 280.dp),
+        modifier = modifier
+            .widthIn(max = 280.dp)
+            .heightIn(max = maxHeight),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(12.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
             // Terrain Info
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -32,18 +47,16 @@ fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modif
                 InfoItem(label = "Aspect", value = pointInfo.aspect)
             }
 
-            if (pointInfo.dangerRatings != null || pointInfo.avalancheProblems != null) {
-                Spacer(modifier = Modifier.height(12.dp))
+            if (pointInfo.dangerRatings != null || pointInfo.avalancheProblems != null || pointInfo.avalancheActivity != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // Danger Levels
                 pointInfo.dangerRatings?.forEach { rating ->
                     DangerItem(rating)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
 
-                // Avalanche Problems
                 pointInfo.avalancheProblems?.let { problems ->
                     if (problems.isNotEmpty()) {
                         if (pointInfo.dangerRatings != null) {
@@ -52,6 +65,33 @@ fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modif
                         problems.forEach { problem ->
                             ProblemItem(problem)
                         }
+                    }
+                }
+
+                // Avalanche Activity
+                pointInfo.avalancheActivity?.let { activity ->
+                    if (activity.highlights != null || activity.comment != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Text(
+                            text = buildAnnotatedString {
+                                activity.highlights?.let {
+                                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = Color.Black)) {
+                                        append(formatHtmlText(it))
+                                    }
+                                    if (activity.comment != null) append("\n\n")
+                                }
+                                activity.comment?.let {
+                                    withStyle(style = SpanStyle(color = Color.DarkGray)) {
+                                        append(formatHtmlText(it))
+                                    }
+                                }
+                            },
+                            fontSize = 12.sp,
+                            lineHeight = 16.sp
+                        )
                     }
                 }
             }
@@ -74,7 +114,7 @@ private fun DangerItem(rating: com.rocasspb.avaawaand.data.DangerRating) {
                 text = rating.mainValue.replaceFirstChar { it.uppercase() },
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
-                fontSize = 15.sp
+                fontSize = 14.sp
             )
             ElevationLabel(rating.elevation)
         }
@@ -102,13 +142,13 @@ private fun InfoItem(label: String, value: String) {
 @Composable
 private fun ProblemItem(problem: com.rocasspb.avaawaand.data.AvalancheProblem) {
     Row(
-        modifier = Modifier.padding(vertical = 6.dp),
+        modifier = Modifier.padding(vertical = 4.dp),
         verticalAlignment = Alignment.Top
     ) {
         Icon(
             painter = painterResource(id = getProblemIcon(problem.problemType)),
             contentDescription = null,
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(32.dp),
             tint = Color.Unspecified
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -140,11 +180,20 @@ private fun ProblemItem(problem: com.rocasspb.avaawaand.data.AvalancheProblem) {
                     text = details.joinToString("\n"),
                     color = Color.Gray,
                     fontSize = 11.sp,
-                    lineHeight = 14.sp
+                    lineHeight = 12.sp
                 )
             }
         }
     }
+}
+
+private fun formatHtmlText(text: String): String {
+    return text
+        .replace("<br/>", "\n")
+        .replace("<br>", "\n")
+        .replace("</br>", "")
+        .replace("&nbsp;", " ")
+        .trim()
 }
 
 private fun formatElevationRange(lower: String?, upper: String?): String? {
