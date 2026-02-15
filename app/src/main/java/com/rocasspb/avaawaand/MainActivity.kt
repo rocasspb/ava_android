@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
-import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -326,7 +325,9 @@ class MainActivity : ComponentActivity() {
                     viewModel.getPointInfo(point, it.zoom)
                 }
                 true
-            }
+            },
+            scaleBar = {ScaleBar(modifier = Modifier.padding(vertical = 30.dp))},
+            compass = {Compass(modifier = Modifier.padding(vertical = 30.dp))}
         ) {
             MapEffect(locationPermissionGranted) { mapView ->
                 mapView.location.apply {
