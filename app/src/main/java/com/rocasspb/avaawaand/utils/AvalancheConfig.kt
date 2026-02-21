@@ -2,7 +2,7 @@ package com.rocasspb.avaawaand.utils
 
 object AvalancheConfig {
     const val DEFAULT_MAX_ELEVATION = 4000
-    const val TREELINE_ELEVATION = 2000
+    const val TREELINE_ELEVATION = 1800
     const val GRID_POINTS_DENSITY = 100
     const val MAX_DISTANCE_PITCHED = 0.02
     
