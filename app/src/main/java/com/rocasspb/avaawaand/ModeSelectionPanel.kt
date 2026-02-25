@@ -198,25 +198,24 @@ fun CustomControls(
             modifier = Modifier.padding(top = 8.dp)
         )
 
-        val allAspects = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            allAspects.forEach { aspect ->
-                FilterChip(
-                    selected = params.aspects.contains(aspect),
-                    onClick = {
-                        val newAspects = if (params.aspects.contains(aspect)) {
-                            params.aspects.filter { it != aspect }
-                        } else {
-                            params.aspects + aspect
-                        }
-                        onParamsChange(params.copy(aspects = newAspects))
-                    },
-                    label = { Text(aspect) }
-                )
-            }
+            WindRose(
+                selectedAspects = params.aspects.toSet(),
+                onAspectClick = { aspect ->
+                    val newAspects = if (params.aspects.contains(aspect)) {
+                        params.aspects.filter { it != aspect }
+                    } else {
+                        params.aspects + aspect
+                    }
+                    onParamsChange(params.copy(aspects = newAspects))
+                },
+                modifier = Modifier.size(160.dp)
+            )
         }
     }
 }

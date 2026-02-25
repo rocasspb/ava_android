@@ -131,7 +131,7 @@ class AvalancheLogicTest {
     fun `adjustElevationForTreeline handles treeline keyword`() {
         val problem = AvalancheProblem(
             problemType = "wind-slab",
-            elevation = Elevation("treeline", "4000"), // Treeline is 2000
+            elevation = Elevation("treeline", "4000"), // Treeline is 1800
             validTimePeriod = null,
             snowpackStability = null,
             frequency = null,
@@ -140,10 +140,10 @@ class AvalancheLogicTest {
         )
         
         val (min, max) = AvalancheLogic.adjustElevationForTreeline(1000, 3000, listOf(problem))
-        // lb="treeline" -> min = max(1000, 2000) = 2000
+        // lb="treeline" -> min = max(1000, 1800) = 1800
         // ub="4000" -> max = 3000 (unchanged by loop logic unless ub was treeline)
         
-        assertEquals(2000.0, min.toDouble(), 0.01)
+        assertEquals(1800.0, min.toDouble(), 0.01)
         assertEquals(3000.0, max.toDouble(), 0.01)
     }
 
@@ -151,7 +151,7 @@ class AvalancheLogicTest {
     fun `processRegionElevations handles mixed treeline and numerical elevation bands`() {
         val region = Region("region1", "Region 1")
         
-        // Danger rating from treeline up (2000 to 4000)
+        // Danger rating from treeline up (1800 to 4000)
         val dangerRating = DangerRating("3", null, Elevation("treeline", null))
         
         // Problem 1: from treeline to 3000
@@ -192,14 +192,14 @@ class AvalancheLogicTest {
 
         val bands = AvalancheLogic.processRegionElevations(listOf(bulletin))
         
-        // Danger: 2000 - 4000 (treeline is 2000, null max is 4000)
-        // Problem 1: 2000 - 3000 (overlaps)
+        // Danger: 1800 - 4000 (treeline is 1800, null max is 4000)
+        // Problem 1: 1800 - 3000 (overlaps)
         // Problem 2: 2500 - 3500 (overlaps)
-        // Union min: min(2000, 2500) = 2000
+        // Union min: min(1800, 2500) = 1800
         // Union max: max(3000, 3500) = 3500
         
         assertEquals(1, bands.size)
-        assertEquals(2000.0, bands[0].minElev.toDouble(), 0.01)
+        assertEquals(1800.0, bands[0].minElev.toDouble(), 0.01)
         assertEquals(3500.0, bands[0].maxElev.toDouble(), 0.01)
         val expectedAspects = listOf("N", "NE", "W", "NW")
         assertEquals(expectedAspects.sorted(), bands[0].validAspects?.sorted())

@@ -46,11 +46,18 @@ fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modif
             // Terrain Info
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 InfoItem(label = "Elev", value = "${pointInfo.elevation}m")
                 InfoItem(label = "Slope", value = String.format(Locale.US, "%.1f°", pointInfo.slope))
-                InfoItem(label = "Aspect", value = pointInfo.aspect)
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = "Aspect", color = Color.Gray, fontSize = 10.sp)
+                    WindRose(
+                        selectedAspects = setOf(pointInfo.aspect),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
             }
 
             if (pointInfo.dangerRatings != null || pointInfo.avalancheProblems != null || pointInfo.avalancheActivity != null) {
@@ -165,12 +172,20 @@ private fun ProblemItem(problem: com.rocasspb.avaawaand.data.AvalancheProblem) {
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp
             )
+
+            // Aspects Wind Rose
+            problem.aspects?.let { aspects ->
+                if (aspects.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    WindRose(
+                        selectedAspects = aspects.toSet(),
+                        modifier = Modifier.size(80.dp)
+                    )
+                }
+            }
             
             // Details
             val details = mutableListOf<String>()
-            
-            // Aspects
-            problem.aspects?.let { if (it.isNotEmpty()) details.add("Aspects: ${it.joinToString(", ")}") }
             
             // Elevation
             val elevLabel = formatElevationRange(problem.elevation?.lowerBound, problem.elevation?.upperBound)
