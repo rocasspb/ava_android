@@ -8,6 +8,7 @@
 
 ## Visual Identity
 - **Iconography:** Use official EAWS (European Avalanche Warning Services) symbols for avalanche danger levels and problems to ensure standardized safety communication. Adhere to Material Design system icons for general UI navigation and actions.
+- **Aspect Visualization:** Use an 8-sector wind rose for representing aspect data consistently across the application.
 - **Measurements:** Use the Metric System (meters and degrees) as the primary units for elevation and slope.
 
 ## Accessibility

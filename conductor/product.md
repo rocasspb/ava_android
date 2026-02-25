@@ -16,6 +16,7 @@ Freeriders, backcountry skiers and snowboarders, planning their routes according
 - Risk Mode: Highlights risky terrain based on danger level, elevation range, aspect, and steepness.
 - Custom Mode: Interactive tools to filter terrain based on elevation, slope angle, and aspect.
 - Off Mode: Disables overlays for a clean map view and reduced battery/data usage.
+- Graphical Aspect Visualization: Uses a 8-sector wind rose for intuitive aspect display and selection.
 - Real-time Location Tracking: Displays user position and heading on the map with a one-tap centering feature.
 - 2D/3D View Toggle: Quick switching between top-down and perspective terrain views.
 - Intelligent Mode Switching: Automatically transitions between regional (Bulletin) and granular (Risk) views based on zoom level.
