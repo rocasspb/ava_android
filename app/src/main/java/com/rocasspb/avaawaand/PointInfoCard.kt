@@ -16,8 +16,13 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rocasspb.avaawaand.data.AvalancheActivity
+import com.rocasspb.avaawaand.data.AvalancheProblem
+import com.rocasspb.avaawaand.data.DangerRating
+import com.rocasspb.avaawaand.data.Elevation
 import java.util.*
 
 @Composable
@@ -51,13 +56,7 @@ fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modif
             ) {
                 InfoItem(label = "Elev", value = "${pointInfo.elevation}m")
                 InfoItem(label = "Slope", value = String.format(Locale.US, "%.1f°", pointInfo.slope))
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = "Aspect", color = Color.Gray, fontSize = 10.sp)
-                    WindRose(
-                        selectedAspects = setOf(pointInfo.aspect),
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
+                InfoItem(label = "Aspect", value = pointInfo.aspect)
             }
 
             if (pointInfo.dangerRatings != null || pointInfo.avalancheProblems != null || pointInfo.avalancheActivity != null) {
@@ -113,7 +112,7 @@ fun PointInfoCard(pointInfo: MainViewModel.PointInfo, modifier: Modifier = Modif
 }
 
 @Composable
-private fun DangerItem(rating: com.rocasspb.avaawaand.data.DangerRating) {
+private fun DangerItem(rating: DangerRating) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             painter = painterResource(id = getDangerIcon(rating.mainValue)),
@@ -135,7 +134,7 @@ private fun DangerItem(rating: com.rocasspb.avaawaand.data.DangerRating) {
 }
 
 @Composable
-private fun ElevationLabel(elevation: com.rocasspb.avaawaand.data.Elevation?) {
+private fun ElevationLabel(elevation: Elevation?) {
     elevation?.let { elev ->
         val label = formatElevationRange(elev.lowerBound, elev.upperBound)
         if (label != null) {
@@ -153,36 +152,36 @@ private fun InfoItem(label: String, value: String) {
 }
 
 @Composable
-private fun ProblemItem(problem: com.rocasspb.avaawaand.data.AvalancheProblem) {
+private fun ProblemItem(problem: AvalancheProblem) {
     Row(
         modifier = Modifier.padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(id = getProblemIcon(problem.problemType)),
             contentDescription = null,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(48.dp),
             tint = Color.Unspecified
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        // Aspects Wind Rose
+        problem.aspects?.let { aspects ->
+            if (aspects.isNotEmpty()) {
+                Spacer(modifier = Modifier.width(4.dp))
+                WindRose(
+                    selectedAspects = aspects.toSet(),
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(4.dp))
         Column {
             Text(
                 text = problem.problemType.replace("_", " ").replaceFirstChar { it.uppercase() },
                 color = Color.Black,
                 fontWeight = FontWeight.Medium,
-                fontSize = 14.sp
+                fontSize = 10.sp,
+                lineHeight = 11.sp
             )
-
-            // Aspects Wind Rose
-            problem.aspects?.let { aspects ->
-                if (aspects.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    WindRose(
-                        selectedAspects = aspects.toSet(),
-                        modifier = Modifier.size(80.dp)
-                    )
-                }
-            }
             
             // Details
             val details = mutableListOf<String>()
@@ -200,8 +199,8 @@ private fun ProblemItem(problem: com.rocasspb.avaawaand.data.AvalancheProblem) {
                 Text(
                     text = details.joinToString("\n"),
                     color = Color.Gray,
-                    fontSize = 11.sp,
-                    lineHeight = 12.sp
+                    fontSize = 10.sp,
+                    lineHeight = 11.sp
                 )
             }
         }
@@ -251,5 +250,57 @@ private fun getProblemIcon(problemType: String): Int {
         "gliding_snow" -> R.drawable.ic_prob_gliding_snow
         "wet_snow" -> R.drawable.ic_prob_wet_snow
         else -> R.drawable.ic_bulletin
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewPointInfoCard() {
+    AvaAwaAndTheme {
+        PointInfoCard(
+            pointInfo = MainViewModel.PointInfo(
+                elevation = 2100,
+                slope = 34.5,
+                aspect = "NE",
+                dangerRatings = listOf(
+                    DangerRating(mainValue = "considerable", validTimePeriod = null, elevation = Elevation("1800", null))
+                ),
+                avalancheProblems = listOf(
+                    AvalancheProblem(
+                        problemType = "wind_slab",
+                        elevation = Elevation("2000", null),
+                        validTimePeriod = null,
+                        snowpackStability = "poor",
+                        frequency = "many",
+                        avalancheSize = 2,
+                        aspects = listOf("N", "NE", "E")
+                    )
+                ),
+                avalancheActivity = AvalancheActivity(
+                    highlights = "Considerable danger due to wind slabs.",
+                    comment = "Avoid steep lee slopes."
+                )
+            )
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewProblemItem() {
+    AvaAwaAndTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ProblemItem(
+                problem = AvalancheProblem(
+                    problemType = "new_snow",
+                    elevation = Elevation(null, "2500"),
+                    validTimePeriod = null,
+                    snowpackStability = "very poor",
+                    frequency = "often",
+                    avalancheSize = 3,
+                    aspects = listOf("NW", "N", "NE")
+                )
+            )
+        }
     }
 }

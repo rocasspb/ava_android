@@ -2,7 +2,6 @@ package com.rocasspb.avaawaand
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -53,9 +52,9 @@ fun findSectorForAngle(angle: Float): AspectSector? {
 
 @Composable
 fun WindRose(
+    modifier: Modifier = Modifier,
     selectedAspects: Set<String>,
     onAspectClick: ((String) -> Unit)? = null,
-    modifier: Modifier = Modifier
 ) {
     val activeColor = MaterialTheme.colorScheme.primary
     val inactiveColor = Color.Transparent
@@ -82,7 +81,7 @@ fun WindRose(
             }
     ) {
         val radius = size.minDimension / 2
-        val innerRadius = radius * 0.4f
+        val innerRadius = radius * 0.3f
         val centerX = size.width / 2
         val centerY = size.height / 2
 
@@ -119,9 +118,9 @@ fun WindRose(
 
             drawContext.canvas.nativeCanvas.apply {
                 val paint = android.graphics.Paint().apply {
-                    color = if (isSelected) android.graphics.Color.WHITE else android.graphics.Color.GRAY
+                    color = if (isSelected) android.graphics.Color.BLACK else android.graphics.Color.GRAY
                     textAlign = android.graphics.Paint.Align.CENTER
-                    textSize = (radius / 5).coerceAtLeast(10.dp.toPx())
+                    textSize = (radius / 5).coerceAtLeast(8.dp.toPx())
                     isFakeBoldText = true
                 }
                 drawText(
