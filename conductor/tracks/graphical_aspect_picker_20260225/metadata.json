@@ -1,0 +1,8 @@
+{
+  "track_id": "graphical_aspect_picker_20260225",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-02-25T22:21:00Z",
+  "updated_at": "2026-02-25T22:21:00Z",
+  "description": "Instead of writing down the aspects, I want a graphical element, like a wind rose or a circle with filled sectors that would represent the affected aspects. Same visual design should be used for aspects picker in custom mode."
+}
