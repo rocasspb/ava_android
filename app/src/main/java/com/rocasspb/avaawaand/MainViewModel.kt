@@ -90,30 +90,30 @@ class MainViewModel(
     }
 
     fun loadMapConfig() {
-        _mapStyleUrl.value = Style.OUTDOORS
+        _mapStyleUrl.postValue(Style.OUTDOORS)
         
-        _initialCameraPosition.value = CameraOptions.Builder()
+        _initialCameraPosition.postValue(CameraOptions.Builder()
             .center(Point.fromLngLat(11.77, 47.26))
             .zoom(8.0)
-            .build()
+            .build())
     }
 
     fun toggleMapStyle() {
-        _mapStyleUrl.value = if (_mapStyleUrl.value == Style.OUTDOORS) {
+        _mapStyleUrl.postValue(if (_mapStyleUrl.value == Style.OUTDOORS) {
             Style.SATELLITE
         } else {
             Style.OUTDOORS
-        }
+        })
     }
 
     fun restoreState(lat: Double, lon: Double, zoom: Double, mode: VisualizationMode) {
-        _initialCameraPosition.value = CameraOptions.Builder()
+        _initialCameraPosition.postValue(CameraOptions.Builder()
             .center(Point.fromLngLat(lon, lat))
             .zoom(zoom)
-            .build()
+            .build())
         
         if (_visualizationMode.value != mode) {
-            _visualizationMode.value = mode
+            _visualizationMode.postValue(mode)
             calculateRules()
         }
     }
@@ -156,20 +156,20 @@ class MainViewModel(
 
     fun setVisualizationMode(mode: VisualizationMode) {
         if (_visualizationMode.value != mode) {
-            _visualizationMode.value = mode
+            _visualizationMode.postValue(mode)
             calculateRules()
         }
     }
 
     fun updateCustomParams(params: CustomModeParams) {
-        _customModeParams.value = params
+        _customModeParams.postValue(params)
         if (_visualizationMode.value == VisualizationMode.CUSTOM) {
             calculateRules()
         }
     }
 
     fun updateCameraPosition(cameraOptions: CameraOptions) {
-        _cameraPosition.value = cameraOptions
+        _cameraPosition.postValue(cameraOptions)
         cameraOptions.zoom?.let { handleZoomChange(it) }
     }
 
@@ -292,11 +292,11 @@ class MainViewModel(
     }
 
     fun clearPointInfo() {
-        _pointInfo.value = null
+        _pointInfo.postValue(null)
     }
 
     fun setLocationPermissionGranted(granted: Boolean) {
-        _locationPermissionGranted.value = granted
+        _locationPermissionGranted.postValue(granted)
     }
 
     companion object {

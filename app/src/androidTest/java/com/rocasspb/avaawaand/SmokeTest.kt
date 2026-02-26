@@ -11,10 +11,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class MainScreenTest : BaseComposeTest() {
+class SmokeTest : BaseComposeTest() {
 
     @Test
-    fun testModeSelectionPanelOpensOnButtonClick() {
+    fun testTypicalUserFlow() {
         val viewModel = MainViewModel(FakeMainRepository())
         
         setContentWithTheme {
@@ -25,9 +25,24 @@ class MainScreenTest : BaseComposeTest() {
             })
         }
         
+        // 1. Open Mode Selection
         onNodeWithContentDescription("Select Mode").performClick()
         
-        // Assert that the panel is now displayed
-        onNodeWithText("Bulletin").assertExists()
+        // 2. Select Custom mode
+        onNodeWithText("Custom").performClick()
+        
+        // 3. Verify Custom controls appear
+        onNodeWithTag("WindRose").assertExists()
+        
+        // 4. Click an aspect in WindRose
+        onNodeWithTag("WindRose").performTouchInput {
+            click(center + androidx.compose.ui.geometry.Offset(width * 0.4f, 0f))
+        }
+        
+        // 5. Close panel
+        onNodeWithContentDescription("Close").performClick()
+        
+        // 6. Verify panel is closed (e.g. by checking if button is visible again)
+        onNodeWithContentDescription("Select Mode").assertExists()
     }
 }

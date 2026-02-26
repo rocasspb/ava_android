@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.testTag
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -63,6 +64,7 @@ fun WindRose(
 
     Canvas(
         modifier = modifier
+            .testTag("WindRose")
             .pointerInput(onAspectClick) {
                 if (onAspectClick != null) {
                     detectTapGestures { offset ->
