@@ -8,9 +8,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Test Infrastructure & FABs' (Protocol in workflow.md)
 
 ## Phase 2: Mode Selection & State Reflection
-- [ ] Task: Implement `testModeSwitching`: Verify that selecting different modes in the panel updates `visualizationMode`.
-- [ ] Task: Implement `testModeUIState`: Ensure the active mode is visually highlighted in the `ModeSelectionPanel`.
-- [ ] Task: Implement `testPanelVisibility`: Verify the panel opens and closes correctly upon interaction.
+- [x] Task: Implement `testModeSwitching`: Verify that selecting different modes in the panel updates `visualizationMode`. 377b118
+- [x] Task: Implement `testModeUIState`: Ensure the active mode is visually highlighted in the `ModeSelectionPanel`. 377b118
+- [x] Task: Implement `testPanelVisibility`: Verify the panel opens and closes correctly upon interaction. 377b118
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Mode Selection & State Reflection' (Protocol in workflow.md)
 
 ## Phase 3: Custom Mode & End-to-End Logic
