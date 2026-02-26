@@ -19,7 +19,7 @@
 - [x] Task: Implement `testLogicTriggering`: Verify that changing parameters triggers avalanche rules recalculation and shows the loading state. 87b42ed
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Custom Mode & End-to-End Logic' (Protocol in workflow.md)
 
-## Phase 4: Final Validation & Integration
-- [ ] Task: Run all unit and instrumented tests to ensure no regressions.
-- [ ] Task: Update the `workflow.md` if any specific environment variables or setup steps are needed for advanced UI tests.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Validation & Integration' (Protocol in workflow.md)
+## Phase 4: Final Validation & Integration [checkpoint: 70db925]
+- [x] Task: Run all unit and instrumented tests to ensure no regressions. 17c485a
+- [x] Task: Update the `workflow.md` if any specific environment variables or setup steps are needed for advanced UI tests. 17c485a
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Validation & Integration' (Protocol in workflow.md)
