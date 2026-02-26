@@ -49,9 +49,14 @@ class InteractionTests : BaseComposeTest() {
         viewModel.setLocationPermissionGranted(true)
         // Wait for UI to update
         onNodeWithContentDescription("My Location").assertExists().performClick()
+    }
+
+    @Test
+    fun testPitchToggleInteraction() {
+        setMainScreenContent()
         
-        // Verifying the actual call to MapViewportState is hard because it's a final class
-        // but we've verified the interaction path is enabled and clickable.
+        // Initially it should show "3D" (because initial pitch is 0.0)
+        onNodeWithText("3D").assertExists().performClick()
     }
 
     @Test
@@ -64,9 +69,71 @@ class InteractionTests : BaseComposeTest() {
         onNodeWithContentDescription("Switch Map Style").performClick()
         
         // Should switch to SATELLITE
-        // Note: LiveData update might take a moment due to postValue
         composeTestRule.waitUntil {
             viewModel.mapStyleUrl.value == com.mapbox.maps.Style.SATELLITE
         }
+    }
+
+    @Test
+    fun testModeSwitching() {
+        setMainScreenContent()
+        
+        // Open panel
+        onNodeWithContentDescription("Select Mode").performClick()
+        
+        // Click Risk mode
+        onNodeWithText("Risk").performClick()
+        composeTestRule.waitUntil {
+            viewModel.visualizationMode.value == com.rocasspb.avaawaand.logic.VisualizationMode.RISK
+        }
+        
+        // Click Custom mode
+        onNodeWithText("Custom").performClick()
+        composeTestRule.waitUntil {
+            viewModel.visualizationMode.value == com.rocasspb.avaawaand.logic.VisualizationMode.CUSTOM
+        }
+        
+        // Click Off mode
+        onNodeWithText("Off").performClick()
+        composeTestRule.waitUntil {
+            viewModel.visualizationMode.value == com.rocasspb.avaawaand.logic.VisualizationMode.OFF
+        }
+    }
+
+    @Test
+    fun testModeUIState() {
+        setMainScreenContent()
+        
+        // Open panel
+        onNodeWithContentDescription("Select Mode").performClick()
+        
+        // Initially Bulletin should be selected
+        onNode(hasText("Bulletin") and isSelected()).assertExists()
+        onNode(hasText("Risk") and isSelected()).assertDoesNotExist()
+        
+        // Click Risk mode
+        onNodeWithText("Risk").performClick()
+        
+        // Now Risk should be selected
+        onNode(hasText("Risk") and isSelected()).assertExists()
+        onNode(hasText("Bulletin") and isSelected()).assertDoesNotExist()
+    }
+
+    @Test
+    fun testPanelVisibility() {
+        setMainScreenContent()
+        
+        // Panel should be hidden initially
+        onNodeWithText("Bulletin").assertDoesNotExist()
+        
+        // Open panel
+        onNodeWithContentDescription("Select Mode").assertExists().performClick()
+        onNodeWithText("Bulletin").assertExists()
+        
+        // Close panel
+        onNodeWithContentDescription("Close").assertExists().performClick()
+        
+        // Panel should be hidden again
+        onNodeWithText("Bulletin").assertDoesNotExist()
     }
 }
