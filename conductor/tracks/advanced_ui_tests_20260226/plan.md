@@ -1,11 +1,11 @@
 # Implementation Plan: Advanced UI Interaction Tests
 
-## Phase 1: Test Infrastructure & FABs
+## Phase 1: Test Infrastructure & FABs [checkpoint: 4efbf2a]
 - [x] Task: Create `InteractionTests.kt` and set up the test environment with a mocked Map viewport and `FakeMainRepository`. 4d47744
 - [x] Task: Implement `testLocationFabInteraction`: Verify clicking the location FAB triggers the viewport transition logic. 4d47744
 - [x] Task: Implement `testPitchToggleInteraction`: Verify the 2D/3D toggle updates pitch state and button text. 4d47744
 - [x] Task: Implement `testStyleToggleInteraction`: Verify the style FAB updates the map style in the ViewModel. 4d47744
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Infrastructure & FABs' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Test Infrastructure & FABs' (Protocol in workflow.md)
 
 ## Phase 2: Mode Selection & State Reflection
 - [ ] Task: Implement `testModeSwitching`: Verify that selecting different modes in the panel updates `visualizationMode`.
