@@ -14,9 +14,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Mode Selection & State Reflection' (Protocol in workflow.md)
 
 ## Phase 3: Custom Mode & End-to-End Logic
-- [ ] Task: Implement `testCustomModeSliders`: Verify that dragging elevation/slope sliders updates `customModeParams`.
-- [ ] Task: Implement `testCustomAspectSelection`: Verify that clicking WindRose sectors in the custom panel updates selected aspects.
-- [ ] Task: Implement `testLogicTriggering`: Verify that changing parameters triggers avalanche rules recalculation and shows the loading state.
+- [x] Task: Implement `testCustomModeSliders`: Verify that dragging elevation/slope sliders updates `customModeParams`. 87b42ed
+- [x] Task: Implement `testCustomAspectSelection`: Verify that clicking WindRose sectors in the custom panel updates selected aspects. 87b42ed
+- [x] Task: Implement `testLogicTriggering`: Verify that changing parameters triggers avalanche rules recalculation and shows the loading state. 87b42ed
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Custom Mode & End-to-End Logic' (Protocol in workflow.md)
 
 ## Phase 4: Final Validation & Integration
