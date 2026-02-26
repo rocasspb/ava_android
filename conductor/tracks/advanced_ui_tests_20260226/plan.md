@@ -13,11 +13,11 @@
 - [x] Task: Implement `testPanelVisibility`: Verify the panel opens and closes correctly upon interaction. 377b118
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Mode Selection & State Reflection' (Protocol in workflow.md)
 
-## Phase 3: Custom Mode & End-to-End Logic
+## Phase 3: Custom Mode & End-to-End Logic [checkpoint: 7dfc423]
 - [x] Task: Implement `testCustomModeSliders`: Verify that dragging elevation/slope sliders updates `customModeParams`. 87b42ed
 - [x] Task: Implement `testCustomAspectSelection`: Verify that clicking WindRose sectors in the custom panel updates selected aspects. 87b42ed
 - [x] Task: Implement `testLogicTriggering`: Verify that changing parameters triggers avalanche rules recalculation and shows the loading state. 87b42ed
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Custom Mode & End-to-End Logic' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Custom Mode & End-to-End Logic' (Protocol in workflow.md)
 
 ## Phase 4: Final Validation & Integration
 - [ ] Task: Run all unit and instrumented tests to ensure no regressions.
