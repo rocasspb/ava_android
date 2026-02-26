@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -62,11 +63,11 @@ import kotlin.math.min
 fun MainScreen(
     viewModel: MainViewModel,
     requestPermissions: Boolean = true,
-    mapContent: @Composable (MapViewportState) -> Unit = { mapViewportState ->
+    mapContent: @Composable (MapViewportState, (Boolean) -> Unit) -> Unit = { mapViewportState, onLoadingChange ->
         MapContent(
             viewModel = viewModel,
             mapViewportState = mapViewportState,
-            onLoadingChange = { /* Default implementation */ }
+            onLoadingChange = onLoadingChange
         )
     }
 ) {
@@ -118,7 +119,7 @@ fun MainScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        mapContent(mapViewportState)
+        mapContent(mapViewportState) { isOverlayLoading = it }
 
         Column(
             modifier = Modifier
@@ -131,7 +132,7 @@ fun MainScreen(
                     shape = CircleShape,
                     color = Color.White,
                     shadowElevation = 4.dp,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(32.dp).testTag("OverlayLoadingIndicator")
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(

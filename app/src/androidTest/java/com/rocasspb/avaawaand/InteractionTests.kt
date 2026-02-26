@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -17,6 +18,7 @@ class InteractionTests : BaseComposeTest() {
 
     private lateinit var viewModel: MainViewModel
     private var capturedViewportState: MapViewportState? = null
+    private var capturedLoadingCallback: ((Boolean) -> Unit)? = null
 
     @Before
     fun setup() {
@@ -28,8 +30,9 @@ class InteractionTests : BaseComposeTest() {
             MainScreen(
                 viewModel = viewModel,
                 requestPermissions = false,
-                mapContent = { viewportState ->
+                mapContent = { viewportState, loadingCallback ->
                     capturedViewportState = viewportState
+                    capturedLoadingCallback = loadingCallback
                     Box(modifier = Modifier.fillMaxSize()) {
                         Text("Mock Map")
                     }
@@ -40,35 +43,25 @@ class InteractionTests : BaseComposeTest() {
 
     @Test
     fun testLocationFabInteraction() {
-        // Initially FAB should not exist if permission not granted
         viewModel.setLocationPermissionGranted(false)
         setMainScreenContent()
         onNodeWithContentDescription("My Location").assertDoesNotExist()
 
-        // Grant permission and it should appear
         viewModel.setLocationPermissionGranted(true)
-        // Wait for UI to update
         onNodeWithContentDescription("My Location").assertExists().performClick()
     }
 
     @Test
     fun testPitchToggleInteraction() {
         setMainScreenContent()
-        
-        // Initially it should show "3D" (because initial pitch is 0.0)
         onNodeWithText("3D").assertExists().performClick()
     }
 
     @Test
     fun testStyleToggleInteraction() {
         setMainScreenContent()
-        
-        // Initial style
         assert(viewModel.mapStyleUrl.value == com.mapbox.maps.Style.OUTDOORS)
-        
         onNodeWithContentDescription("Switch Map Style").performClick()
-        
-        // Should switch to SATELLITE
         composeTestRule.waitUntil {
             viewModel.mapStyleUrl.value == com.mapbox.maps.Style.SATELLITE
         }
@@ -77,23 +70,18 @@ class InteractionTests : BaseComposeTest() {
     @Test
     fun testModeSwitching() {
         setMainScreenContent()
-        
-        // Open panel
         onNodeWithContentDescription("Select Mode").performClick()
         
-        // Click Risk mode
         onNodeWithText("Risk").performClick()
         composeTestRule.waitUntil {
             viewModel.visualizationMode.value == com.rocasspb.avaawaand.logic.VisualizationMode.RISK
         }
         
-        // Click Custom mode
         onNodeWithText("Custom").performClick()
         composeTestRule.waitUntil {
             viewModel.visualizationMode.value == com.rocasspb.avaawaand.logic.VisualizationMode.CUSTOM
         }
         
-        // Click Off mode
         onNodeWithText("Off").performClick()
         composeTestRule.waitUntil {
             viewModel.visualizationMode.value == com.rocasspb.avaawaand.logic.VisualizationMode.OFF
@@ -103,18 +91,12 @@ class InteractionTests : BaseComposeTest() {
     @Test
     fun testModeUIState() {
         setMainScreenContent()
-        
-        // Open panel
         onNodeWithContentDescription("Select Mode").performClick()
         
-        // Initially Bulletin should be selected
         onNode(hasText("Bulletin") and isSelected()).assertExists()
         onNode(hasText("Risk") and isSelected()).assertDoesNotExist()
         
-        // Click Risk mode
         onNodeWithText("Risk").performClick()
-        
-        // Now Risk should be selected
         onNode(hasText("Risk") and isSelected()).assertExists()
         onNode(hasText("Bulletin") and isSelected()).assertDoesNotExist()
     }
@@ -122,18 +104,72 @@ class InteractionTests : BaseComposeTest() {
     @Test
     fun testPanelVisibility() {
         setMainScreenContent()
-        
-        // Panel should be hidden initially
         onNodeWithText("Bulletin").assertDoesNotExist()
         
-        // Open panel
         onNodeWithContentDescription("Select Mode").assertExists().performClick()
         onNodeWithText("Bulletin").assertExists()
         
-        // Close panel
         onNodeWithContentDescription("Close").assertExists().performClick()
-        
-        // Panel should be hidden again
         onNodeWithText("Bulletin").assertDoesNotExist()
+    }
+
+    @Test
+    fun testCustomModeSliders() {
+        setMainScreenContent()
+        onNodeWithContentDescription("Select Mode").performClick()
+        onNodeWithText("Custom").performClick()
+        
+        onNodeWithText("1000m - 4000m").assertExists()
+        onNodeWithText("30°").assertExists()
+        
+        onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(30f, 30f..45f, 14))).performTouchInput {
+            swipeRight()
+        }
+        
+        composeTestRule.waitUntil {
+            viewModel.customModeParams.value?.minSlope ?: 0 > 30
+        }
+        
+        val newSlope = viewModel.customModeParams.value?.minSlope
+        onNodeWithText("${newSlope}°").assertExists()
+    }
+
+    @Test
+    fun testCustomAspectSelection() {
+        setMainScreenContent()
+        onNodeWithContentDescription("Select Mode").performClick()
+        onNodeWithText("Custom").performClick()
+        
+        assert(viewModel.customModeParams.value?.aspects?.size == 8)
+        
+        onNodeWithTag("WindRose").performTouchInput {
+            click(center + androidx.compose.ui.geometry.Offset(width * 0.4f, 0f))
+        }
+        
+        composeTestRule.waitUntil {
+            viewModel.customModeParams.value?.aspects?.size == 7
+        }
+        assert(viewModel.customModeParams.value?.aspects?.contains("E") == false)
+    }
+
+    @Test
+    fun testLogicTriggering() {
+        setMainScreenContent()
+        
+        // Manually trigger loading state via captured callback
+        composeTestRule.runOnUiThread {
+            capturedLoadingCallback?.invoke(true)
+        }
+        
+        // Verify loading indicator appears
+        onNodeWithTag("OverlayLoadingIndicator").assertExists()
+        
+        // Stop loading
+        composeTestRule.runOnUiThread {
+            capturedLoadingCallback?.invoke(false)
+        }
+        
+        // Verify it disappears
+        onNodeWithTag("OverlayLoadingIndicator").assertDoesNotExist()
     }
 }

@@ -28,7 +28,7 @@ class MaplessMainScreenTest : BaseComposeTest() {
         val viewModel = MainViewModel(fakeRepository)
         
         setContentWithTheme {
-            MainScreen(viewModel, requestPermissions = false, mapContent = { 
+            MainScreen(viewModel, requestPermissions = false, mapContent = { _, _ -> 
                 Box(modifier = Modifier.fillMaxSize()) {
                     Text("Mock Map Content")
                 }
