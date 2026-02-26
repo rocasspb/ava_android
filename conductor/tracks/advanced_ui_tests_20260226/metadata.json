@@ -1,0 +1,8 @@
+{
+  "track_id": "advanced_ui_tests_20260226",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-02-26T12:18:00Z",
+  "updated_at": "2026-02-26T12:18:00Z",
+  "description": "Advanced UI tests: verify that clicking on different controls (FABs, mode selection, custom mode) actually triggers logic calls/ui updates"
+}

@@ -1,0 +1,25 @@
+# Implementation Plan: Advanced UI Interaction Tests
+
+## Phase 1: Test Infrastructure & FABs
+- [ ] Task: Create `InteractionTests.kt` and set up the test environment with a mocked Map viewport and `FakeMainRepository`.
+- [ ] Task: Implement `testLocationFabInteraction`: Verify clicking the location FAB triggers the viewport transition logic.
+- [ ] Task: Implement `testPitchToggleInteraction`: Verify the 2D/3D toggle updates pitch state and button text.
+- [ ] Task: Implement `testStyleToggleInteraction`: Verify the style FAB updates the map style in the ViewModel.
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Test Infrastructure & FABs' (Protocol in workflow.md)
+
+## Phase 2: Mode Selection & State Reflection
+- [ ] Task: Implement `testModeSwitching`: Verify that selecting different modes in the panel updates `visualizationMode`.
+- [ ] Task: Implement `testModeUIState`: Ensure the active mode is visually highlighted in the `ModeSelectionPanel`.
+- [ ] Task: Implement `testPanelVisibility`: Verify the panel opens and closes correctly upon interaction.
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Mode Selection & State Reflection' (Protocol in workflow.md)
+
+## Phase 3: Custom Mode & End-to-End Logic
+- [ ] Task: Implement `testCustomModeSliders`: Verify that dragging elevation/slope sliders updates `customModeParams`.
+- [ ] Task: Implement `testCustomAspectSelection`: Verify that clicking WindRose sectors in the custom panel updates selected aspects.
+- [ ] Task: Implement `testLogicTriggering`: Verify that changing parameters triggers avalanche rules recalculation and shows the loading state.
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Custom Mode & End-to-End Logic' (Protocol in workflow.md)
+
+## Phase 4: Final Validation & Integration
+- [ ] Task: Run all unit and instrumented tests to ensure no regressions.
+- [ ] Task: Update the `workflow.md` if any specific environment variables or setup steps are needed for advanced UI tests.
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Validation & Integration' (Protocol in workflow.md)
