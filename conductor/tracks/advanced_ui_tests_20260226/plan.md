@@ -7,11 +7,11 @@
 - [x] Task: Implement `testStyleToggleInteraction`: Verify the style FAB updates the map style in the ViewModel. 4d47744
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Test Infrastructure & FABs' (Protocol in workflow.md)
 
-## Phase 2: Mode Selection & State Reflection
+## Phase 2: Mode Selection & State Reflection [checkpoint: a691d36]
 - [x] Task: Implement `testModeSwitching`: Verify that selecting different modes in the panel updates `visualizationMode`. 377b118
 - [x] Task: Implement `testModeUIState`: Ensure the active mode is visually highlighted in the `ModeSelectionPanel`. 377b118
 - [x] Task: Implement `testPanelVisibility`: Verify the panel opens and closes correctly upon interaction. 377b118
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Mode Selection & State Reflection' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Mode Selection & State Reflection' (Protocol in workflow.md)
 
 ## Phase 3: Custom Mode & End-to-End Logic
 - [ ] Task: Implement `testCustomModeSliders`: Verify that dragging elevation/slope sliders updates `customModeParams`.
