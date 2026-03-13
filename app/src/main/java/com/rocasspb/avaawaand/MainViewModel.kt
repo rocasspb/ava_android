@@ -90,30 +90,30 @@ class MainViewModel(
     }
 
     fun loadMapConfig() {
-        _mapStyleUrl.postValue(Style.OUTDOORS)
+        _mapStyleUrl.value = Style.OUTDOORS
         
-        _initialCameraPosition.postValue(CameraOptions.Builder()
+        _initialCameraPosition.value = CameraOptions.Builder()
             .center(Point.fromLngLat(11.77, 47.26))
             .zoom(8.0)
-            .build())
+            .build()
     }
 
     fun toggleMapStyle() {
-        _mapStyleUrl.postValue(if (_mapStyleUrl.value == Style.OUTDOORS) {
+        _mapStyleUrl.value = if (_mapStyleUrl.value == Style.OUTDOORS) {
             Style.SATELLITE
         } else {
             Style.OUTDOORS
-        })
+        }
     }
 
     fun restoreState(lat: Double, lon: Double, zoom: Double, mode: VisualizationMode) {
-        _initialCameraPosition.postValue(CameraOptions.Builder()
+        _initialCameraPosition.value = CameraOptions.Builder()
             .center(Point.fromLngLat(lon, lat))
             .zoom(zoom)
-            .build())
+            .build()
         
         if (_visualizationMode.value != mode) {
-            _visualizationMode.postValue(mode)
+            _visualizationMode.value = mode
             calculateRules()
         }
     }
@@ -156,20 +156,20 @@ class MainViewModel(
 
     fun setVisualizationMode(mode: VisualizationMode) {
         if (_visualizationMode.value != mode) {
-            _visualizationMode.postValue(mode)
+            _visualizationMode.value = mode
             calculateRules()
         }
     }
 
     fun updateCustomParams(params: CustomModeParams) {
-        _customModeParams.postValue(params)
+        _customModeParams.value = params
         if (_visualizationMode.value == VisualizationMode.CUSTOM) {
             calculateRules()
         }
     }
 
     fun updateCameraPosition(cameraOptions: CameraOptions) {
-        _cameraPosition.postValue(cameraOptions)
+        _cameraPosition.value = cameraOptions
         cameraOptions.zoom?.let { handleZoomChange(it) }
     }
 
@@ -189,19 +189,21 @@ class MainViewModel(
     }
     
     fun calculateRules() {
+         // Capture current state values on the caller thread (usually Main) 
+         // to avoid race conditions when reading LiveData.value inside the coroutine
+         val bulletins = _avalancheData.value ?: return
+         val regions = _regions.value ?: return
+         val mode = _visualizationMode.value ?: VisualizationMode.BULLETIN
+         val customParams = _customModeParams.value ?: CustomModeParams()
+
          calculationJob?.cancel()
          calculationJob = viewModelScope.launch(defaultDispatcher) {
-             val bulletins = _avalancheData.value ?: return@launch
-             val regions = _regions.value ?: return@launch
-             val currentMode = _visualizationMode.value ?: VisualizationMode.BULLETIN
-
-             if (currentMode == VisualizationMode.OFF) {
+             if (mode == VisualizationMode.OFF) {
                  _generationRules.postValue(emptyList())
                  return@launch
              }
 
-             if(currentMode == VisualizationMode.CUSTOM) {
-                 val customParams = _customModeParams.value ?: CustomModeParams()
+             if(mode == VisualizationMode.CUSTOM) {
                  val rules = AvalancheConfig.STEEPNESS_THRESHOLDS.map {
                      GenerationRule(
                          bounds = AvalancheConfig.EUREGIO_BOUNDS,
@@ -223,7 +225,7 @@ class MainViewModel(
                  val rules = AvalancheLogic.generateRules(
                      bands,
                      regions.features,
-                     currentMode
+                     mode
                  )
                  _generationRules.postValue(rules)
              }
@@ -296,7 +298,7 @@ class MainViewModel(
     }
 
     fun setLocationPermissionGranted(granted: Boolean) {
-        _locationPermissionGranted.postValue(granted)
+        _locationPermissionGranted.value = granted
     }
 
     companion object {
