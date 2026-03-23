@@ -7,7 +7,7 @@
 - [ ] Task: Conductor - User Manual Verification 'Foundation & Data Layer' (Protocol in workflow.md)
 
 ## Phase 2: Logic & ViewModel Integration
-- [ ] Task: Update `MainViewModel` to manage the list of loaded GPX tracks and selection state
+- [x] Task: Update `MainViewModel` to manage the list of loaded GPX tracks and selection state (ef9070a)
 - [ ] Task: Implement `importGpx` and `deleteGpx` logic in `MainViewModel`
 - [ ] Task: Add Intent Filter to `AndroidManifest.xml` and handle external GPX files in `MainActivity`
 - [ ] Task: Conductor - User Manual Verification 'Logic & ViewModel Integration' (Protocol in workflow.md)
