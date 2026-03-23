@@ -3,6 +3,7 @@ package com.rocasspb.avaawaand
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.mapbox.geojson.Point
 import com.rocasspb.avaawaand.data.*
+import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +54,7 @@ class PointInfoDetailedTest {
     }
 
     @Test
-    fun `getPointInfo should include all danger levels and avalanche problems`() = runTest {
+    fun `getPointInfo should include all danger levels and avalanche problems`() = runTest(testDispatcher) {
         val regionId = "AT-07-23-02"
         val testPoint = Point.fromLngLat(11.77, 47.26)
         
@@ -116,7 +117,7 @@ class PointInfoDetailedTest {
         }
 
         val fakeElevationProvider = FakeElevationProvider(2500)
-        val viewModel = MainViewModel(fakeRepo, fakeElevationProvider, testDispatcher, testDispatcher)
+        val viewModel = MainViewModel(fakeRepo, FakeGpxRepository(), fakeElevationProvider, testDispatcher, testDispatcher)
         advanceUntilIdle() // Process fetchData
 
         // Act

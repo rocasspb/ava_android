@@ -7,7 +7,13 @@ import java.io.File
 /**
  * Repository for handling persistence of GPX tracks.
  */
-class GpxRepository(context: Context) {
+interface GpxRepository {
+    fun saveTrack(track: GpxTrack)
+    fun getAllTracks(): List<GpxTrack>
+    fun deleteTrack(trackId: String)
+}
+
+class GpxRepositoryImpl(context: Context) : GpxRepository {
     private val gson = Gson()
     private val gpxDir = File(context.filesDir, "gpx")
 
@@ -17,7 +23,7 @@ class GpxRepository(context: Context) {
         }
     }
 
-    fun saveTrack(track: GpxTrack) {
+    override fun saveTrack(track: GpxTrack) {
         try {
             val file = File(gpxDir, "${track.id}.json")
             file.writeText(gson.toJson(track))
@@ -26,7 +32,7 @@ class GpxRepository(context: Context) {
         }
     }
 
-    fun getAllTracks(): List<GpxTrack> {
+    override fun getAllTracks(): List<GpxTrack> {
         val tracks = mutableListOf<GpxTrack>()
         try {
             val files = gpxDir.listFiles { _, name -> name.endsWith(".json") }
@@ -42,7 +48,7 @@ class GpxRepository(context: Context) {
         return tracks
     }
 
-    fun deleteTrack(trackId: String) {
+    override fun deleteTrack(trackId: String) {
         try {
             val file = File(gpxDir, "$trackId.json")
             if (file.exists()) {

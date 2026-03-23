@@ -3,6 +3,9 @@ package com.rocasspb.avaawaand
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.gson.Gson
 import com.mapbox.maps.Style
+import com.rocasspb.avaawaand.data.GpxRepository
+import com.rocasspb.avaawaand.data.GpxTrack
+import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.data.AvalancheData
 import com.rocasspb.avaawaand.data.AvalancheResponse
@@ -54,7 +57,7 @@ class MainViewModelTest {
 
     @Test
     fun testLoadMapConfig() {
-        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
 
         viewModel.loadMapConfig()
 
@@ -69,7 +72,7 @@ class MainViewModelTest {
 
     @Test
     fun testUpdateCameraPosition() {
-        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         val newPosition = com.mapbox.maps.CameraOptions.Builder()
             .center(com.mapbox.geojson.Point.fromLngLat(12.0, 48.0))
             .zoom(10.0)
@@ -82,7 +85,7 @@ class MainViewModelTest {
 
     @Test
     fun testAutoSwitchingZoomIn() {
-        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         viewModel.setVisualizationMode(VisualizationMode.BULLETIN)
 
         val newPosition = com.mapbox.maps.CameraOptions.Builder()
@@ -95,7 +98,7 @@ class MainViewModelTest {
 
     @Test
     fun testAutoSwitchingZoomOut() {
-        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         
         // Test RISK -> BULLETIN
         viewModel.setVisualizationMode(VisualizationMode.RISK)
@@ -110,7 +113,7 @@ class MainViewModelTest {
 
     @Test
     fun testOffModeIgnoresZoom() {
-        val viewModel = MainViewModel(FakeMainRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         viewModel.setVisualizationMode(VisualizationMode.OFF)
 
         viewModel.updateCameraPosition(com.mapbox.maps.CameraOptions.Builder().zoom(15.0).build())
@@ -123,7 +126,7 @@ class MainViewModelTest {
     @Test
     fun testFetchData() = runTest(testDispatcher) {
         val fakeRepo = FakeMainRepository()
-        val viewModel = MainViewModel(fakeRepo, ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        val viewModel = MainViewModel(fakeRepo, FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         
         // Advance time to allow init block to run fetchData
         advanceUntilIdle()

@@ -19,7 +19,7 @@ class GpxRepositoryTest {
     @Before
     fun setup() {
         context = RuntimeEnvironment.getApplication()
-        repository = GpxRepository(context)
+        repository = GpxRepositoryImpl(context)
     }
 
     @Test

@@ -12,6 +12,9 @@ import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.AvalancheActivity
 import com.rocasspb.avaawaand.data.AvalancheData
+import com.rocasspb.avaawaand.data.GpxRepository
+import com.rocasspb.avaawaand.data.GpxRepositoryImpl
+import com.rocasspb.avaawaand.data.GpxTrack
 import com.rocasspb.avaawaand.data.MainRepository
 import com.rocasspb.avaawaand.data.MainRepositoryImpl
 import com.rocasspb.avaawaand.data.PersistenceManager
@@ -33,6 +36,7 @@ import kotlin.math.max
 
 class MainViewModel(
     private val repository: MainRepository,
+    private val gpxRepository: GpxRepository,
     private val elevationProvider: TerrainRgbElevationProvider = TerrainRgbElevationProvider(),
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
@@ -71,6 +75,12 @@ class MainViewModel(
     private val _locationPermissionGranted = MutableLiveData<Boolean>(false)
     val locationPermissionGranted: LiveData<Boolean> = _locationPermissionGranted
 
+    private val _gpxTracks = MutableLiveData<List<GpxTrack>>(emptyList())
+    val gpxTracks: LiveData<List<GpxTrack>> = _gpxTracks
+
+    private val _selectedGpxTrack = MutableLiveData<GpxTrack?>(null)
+    val selectedGpxTrack: LiveData<GpxTrack?> = _selectedGpxTrack
+
     data class PointInfo(
         val elevation: Int,
         val slope: Double,
@@ -87,6 +97,7 @@ class MainViewModel(
         // Load initial data
         loadMapConfig()
         fetchData()
+        loadGpxTracks()
     }
 
     fun loadMapConfig() {
@@ -152,6 +163,21 @@ class MainViewModel(
                 }
             }
         }
+    }
+
+    fun loadGpxTracks() {
+        viewModelScope.launch(ioDispatcher) {
+            val tracks = gpxRepository.getAllTracks()
+            _gpxTracks.postValue(tracks)
+        }
+    }
+
+    fun selectGpxTrack(track: GpxTrack) {
+        _selectedGpxTrack.value = track
+    }
+
+    fun deselectGpxTrack() {
+        _selectedGpxTrack.value = null
     }
 
     fun setVisualizationMode(mode: VisualizationMode) {
@@ -308,7 +334,8 @@ class MainViewModel(
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY])
                 val persistenceManager = PersistenceManager(application)
                 val repository = MainRepositoryImpl(persistenceManager = persistenceManager)
-                return MainViewModel(repository) as T
+                val gpxRepository = GpxRepositoryImpl(application)
+                return MainViewModel(repository, gpxRepository) as T
             }
         }
     }
