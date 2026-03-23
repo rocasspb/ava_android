@@ -2,7 +2,7 @@
 
 ## Phase 1: Foundation & Data Layer
 - [x] Task: Define GPX Data Models (`GpxTrack`, `GpxPoint`, `GpxMetadata`) (8fd83d4)
-- [ ] Task: Implement `GpxParser` using `XmlPullParser` to extract coordinates, name, distance, and elevation
+- [x] Task: Implement `GpxParser` using `XmlPullParser` to extract coordinates, name, distance, and elevation (1ffd864)
 - [ ] Task: Create `GpxRepository` to handle saving/loading GPX files in internal storage
 - [ ] Task: Conductor - User Manual Verification 'Foundation & Data Layer' (Protocol in workflow.md)
 
