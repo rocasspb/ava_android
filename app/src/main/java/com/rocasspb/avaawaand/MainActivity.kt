@@ -1,5 +1,6 @@
 package com.rocasspb.avaawaand
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,9 +35,30 @@ class MainActivity : ComponentActivity() {
 
         viewModel.restoreState(lat, lon, zoom, mode)
 
+        // Handle intent for opening GPX file
+        handleGpxIntent(intent)
+
         setContent {
             AvaAwaAndTheme {
                 MainScreen(viewModel)
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleGpxIntent(intent)
+    }
+
+    private fun handleGpxIntent(intent: Intent?) {
+        val data = intent?.data ?: return
+        if (intent.action == Intent.ACTION_VIEW) {
+            try {
+                contentResolver.openInputStream(data)?.use { inputStream ->
+                    viewModel.importGpx(inputStream)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
