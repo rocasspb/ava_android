@@ -8,7 +8,7 @@
 
 ## Phase 2: Logic & ViewModel Integration
 - [x] Task: Update `MainViewModel` to manage the list of loaded GPX tracks and selection state (ef9070a)
-- [ ] Task: Implement `importGpx` and `deleteGpx` logic in `MainViewModel`
+- [x] Task: Implement `importGpx` and `deleteGpx` logic in `MainViewModel` (fa251e4)
 - [ ] Task: Add Intent Filter to `AndroidManifest.xml` and handle external GPX files in `MainActivity`
 - [ ] Task: Conductor - User Manual Verification 'Logic & ViewModel Integration' (Protocol in workflow.md)
 
