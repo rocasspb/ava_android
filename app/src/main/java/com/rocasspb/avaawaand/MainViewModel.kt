@@ -12,6 +12,7 @@ import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.AvalancheActivity
 import com.rocasspb.avaawaand.data.AvalancheData
+import com.rocasspb.avaawaand.data.GpxParser
 import com.rocasspb.avaawaand.data.GpxRepository
 import com.rocasspb.avaawaand.data.GpxRepositoryImpl
 import com.rocasspb.avaawaand.data.GpxTrack
@@ -32,6 +33,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.InputStream
 import kotlin.math.max
 
 class MainViewModel(
@@ -41,6 +43,7 @@ class MainViewModel(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
+    private val gpxParser = GpxParser()
 
     private val _mapStyleUrl = MutableLiveData<String>()
     val mapStyleUrl: LiveData<String> = _mapStyleUrl
@@ -169,6 +172,28 @@ class MainViewModel(
         viewModelScope.launch(ioDispatcher) {
             val tracks = gpxRepository.getAllTracks()
             _gpxTracks.postValue(tracks)
+        }
+    }
+
+    fun importGpx(inputStream: InputStream) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val tracks = gpxParser.parse(inputStream)
+                tracks.forEach { gpxRepository.saveTrack(it) }
+                loadGpxTracks()
+            } catch (e: Exception) {
+                _error.postValue("Failed to import GPX: ${e.message}")
+            }
+        }
+    }
+
+    fun deleteGpx(trackId: String) {
+        viewModelScope.launch(ioDispatcher) {
+            gpxRepository.deleteTrack(trackId)
+            if (_selectedGpxTrack.value?.id == trackId) {
+                _selectedGpxTrack.postValue(null)
+            }
+            loadGpxTracks()
         }
     }
 

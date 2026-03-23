@@ -20,8 +20,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import java.io.ByteArrayInputStream
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -50,6 +50,37 @@ class MainViewModelGpxTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+    }
+
+    @Test
+    fun testImportGpx() = runTest(testDispatcher) {
+        val gpxContent = """
+            <gpx version="1.1">
+                <trk><name>New Track</name><trkseg><trkpt lat="46.0" lon="10.0"/></trkseg></trk>
+            </gpx>
+        """.trimIndent()
+        val inputStream = ByteArrayInputStream(gpxContent.toByteArray())
+        
+        viewModel.importGpx(inputStream)
+        advanceUntilIdle()
+        
+        val tracks = viewModel.gpxTracks.value
+        assertEquals(1, tracks?.size)
+        assertEquals("New Track", tracks?.get(0)?.name)
+    }
+
+    @Test
+    fun testDeleteGpx() = runTest(testDispatcher) {
+        val track = GpxTrack("test-id", "name", emptyList(), 0.0, 0.0, 0.0)
+        gpxRepository.saveTrack(track)
+        viewModel.loadGpxTracks()
+        advanceUntilIdle()
+        
+        viewModel.deleteGpx("test-id")
+        advanceUntilIdle()
+        
+        val tracks = viewModel.gpxTracks.value
+        assertTrue(tracks?.isEmpty() == true)
     }
 
     @Test
