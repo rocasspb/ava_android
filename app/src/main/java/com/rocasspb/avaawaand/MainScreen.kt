@@ -262,6 +262,8 @@ fun MapContent(
 ) {
     val mapStyleUrl by viewModel.mapStyleUrl.observeAsState(Style.OUTDOORS)
     val generationRules by viewModel.generationRules.observeAsState(emptyList())
+    val gpxTracks by viewModel.gpxTracks.observeAsState(emptyList())
+    val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
     val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
     val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     var overlayJob by remember { mutableStateOf<Job?>(null) }
@@ -332,6 +334,7 @@ fun MapContent(
         mapViewportState = mapViewportState,
         onMapClickListener = OnMapClickListener {
             viewModel.clearPointInfo()
+            viewModel.deselectGpxTrack()
             false
         },
         onMapLongClickListener = OnMapLongClickListener { point ->
@@ -343,6 +346,12 @@ fun MapContent(
         scaleBar = { ScaleBar(modifier = Modifier.padding(vertical = 30.dp)) },
         compass = { Compass(modifier = Modifier.padding(vertical = 30.dp)) }
     ) {
+        GpxOverlay(
+            gpxTracks = gpxTracks,
+            selectedTrack = selectedGpxTrack,
+            onTrackClick = { viewModel.selectGpxTrack(it) }
+        )
+
         MapEffect(locationPermissionGranted) { mapView ->
             mapView.location.apply {
                 enabled = locationPermissionGranted
