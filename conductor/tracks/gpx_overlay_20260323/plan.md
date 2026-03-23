@@ -6,7 +6,7 @@
 - [x] Task: Create `GpxRepository` to handle saving/loading GPX files in internal storage (7da2bd6)
 - [ ] Task: Conductor - User Manual Verification 'Foundation & Data Layer' (Protocol in workflow.md)
 
-## Phase 2: Logic & ViewModel Integration
+## Phase 2: Logic & ViewModel Integration [checkpoint: e6666c9]
 - [x] Task: Update `MainViewModel` to manage the list of loaded GPX tracks and selection state (ef9070a)
 - [x] Task: Implement `importGpx` and `deleteGpx` logic in `MainViewModel` (fa251e4)
 - [x] Task: Add Intent Filter to `AndroidManifest.xml` and handle external GPX files in `MainActivity` (27b98a1)
