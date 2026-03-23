@@ -1,6 +1,6 @@
 # Implementation Plan: GPX Route Overlay
 
-## Phase 1: Foundation & Data Layer
+## Phase 1: Foundation & Data Layer [checkpoint: f68e7a4]
 - [x] Task: Define GPX Data Models (`GpxTrack`, `GpxPoint`, `GpxMetadata`) (8fd83d4)
 - [x] Task: Implement `GpxParser` using `XmlPullParser` to extract coordinates, name, distance, and elevation (1ffd864)
 - [x] Task: Create `GpxRepository` to handle saving/loading GPX files in internal storage (7da2bd6)
