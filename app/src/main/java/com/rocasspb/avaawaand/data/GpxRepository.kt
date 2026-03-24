@@ -1,6 +1,7 @@
 package com.rocasspb.avaawaand.data
 
 import android.content.Context
+import android.util.Log
 import com.google.gson.Gson
 import java.io.File
 
@@ -28,7 +29,7 @@ class GpxRepositoryImpl(context: Context) : GpxRepository {
             val file = File(gpxDir, "${track.id}.json")
             file.writeText(gson.toJson(track))
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("GpxRepository", "Error saving track", e)
         }
     }
 
@@ -43,7 +44,7 @@ class GpxRepositoryImpl(context: Context) : GpxRepository {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("GpxRepository", "Error loading tracks", e)
         }
         return tracks
     }
@@ -55,7 +56,7 @@ class GpxRepositoryImpl(context: Context) : GpxRepository {
                 file.delete()
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("GpxRepository", "Error deleting track", e)
         }
     }
 }
