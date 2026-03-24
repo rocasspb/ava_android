@@ -19,6 +19,7 @@ Freeriders, backcountry skiers and snowboarders, planning their routes according
 - Graphical Aspect Visualization: Uses a 8-sector wind rose for intuitive aspect display and selection.
 - Real-time Location Tracking: Displays user position and heading on the map with a one-tap centering feature.
 - 2D/3D View Toggle: Quick switching between top-down and perspective terrain views.
+- GPX Route Overlay: Allows users to import and visualize GPX tracks on the map. Includes a detail card showing route name, total distance, and elevation gain/loss, plus the ability to delete imported routes.
 - Intelligent Mode Switching: Automatically transitions between regional (Bulletin) and granular (Risk) views based on zoom level.
 
 ## Data & Sync
