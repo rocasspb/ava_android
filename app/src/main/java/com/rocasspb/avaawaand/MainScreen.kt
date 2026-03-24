@@ -106,7 +106,6 @@ fun MainScreen(
 
     val visualizationMode by viewModel.visualizationMode.observeAsState(VisualizationMode.BULLETIN)
     val pointInfo by viewModel.pointInfo.observeAsState()
-    val gpxTracks by viewModel.gpxTracks.observeAsState(emptyList())
     val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
     val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
     val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
@@ -253,7 +252,7 @@ fun MainScreen(
                     shape = CircleShape
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_custom),
+                        painter = painterResource(id = R.drawable.ic_gpx),
                         contentDescription = "Import GPX",
                         modifier = Modifier.size(24.dp)
                     )
