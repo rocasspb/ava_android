@@ -4,12 +4,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.test.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mapbox.common.MapboxOptions
 import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.fakes.FakeMainRepository
-import com.rocasspb.avaawaand.logic.VisualizationMode
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith

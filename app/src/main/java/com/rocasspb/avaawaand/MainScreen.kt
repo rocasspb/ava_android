@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapboxMap
@@ -302,7 +303,7 @@ fun MapContent(
     val gpxTracks by viewModel.gpxTracks.observeAsState(emptyList())
     val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
     val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
-    val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var overlayJob by remember { mutableStateOf<Job?>(null) }
 
     // Sync viewport state back to ViewModel for persistence
@@ -340,7 +341,7 @@ fun MapContent(
 
         overlayJob?.cancel()
         onLoadingChange(true)
-        overlayJob = lifecycleOwner?.lifecycleScope?.launch(Dispatchers.Default) {
+        overlayJob = lifecycleOwner.lifecycleScope.launch(Dispatchers.Default) {
             try {
                 val provider = TerrainRgbElevationProvider()
                 provider.prepare(renderBounds, zoom)

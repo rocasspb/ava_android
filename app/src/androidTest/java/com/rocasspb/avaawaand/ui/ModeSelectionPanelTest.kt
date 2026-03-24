@@ -1,14 +1,12 @@
 package com.rocasspb.avaawaand.ui
 
+import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rocasspb.avaawaand.BaseComposeTest
 import com.rocasspb.avaawaand.MainViewModel
 import com.rocasspb.avaawaand.ModeSelectionPanel
 import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.fakes.FakeMainRepository
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performClick
 import org.junit.Test
 import org.junit.runner.RunWith
 
