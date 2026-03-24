@@ -55,7 +55,8 @@ class MainActivity : ComponentActivity() {
         if (intent.action == Intent.ACTION_VIEW) {
             try {
                 contentResolver.openInputStream(data)?.use { inputStream ->
-                    viewModel.importGpx(inputStream)
+                    val bytes = inputStream.readBytes()
+                    viewModel.importGpx(bytes.inputStream())
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
