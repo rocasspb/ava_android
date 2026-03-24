@@ -106,6 +106,8 @@ fun MainScreen(
 
     val visualizationMode by viewModel.visualizationMode.observeAsState(VisualizationMode.BULLETIN)
     val pointInfo by viewModel.pointInfo.observeAsState()
+    val gpxTracks by viewModel.gpxTracks.observeAsState(emptyList())
+    val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
     val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
     val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
     var showModePanel by remember { mutableStateOf(false) }
@@ -161,6 +163,13 @@ fun MainScreen(
 
             if (pointInfo != null) {
                 PointInfoCard(pointInfo = pointInfo!!)
+            }
+
+            if (selectedGpxTrack != null) {
+                GpxInfoCard(
+                    track = selectedGpxTrack!!,
+                    onDeleteClick = { viewModel.deleteGpx(selectedGpxTrack!!.id) }
+                )
             }
         }
 
