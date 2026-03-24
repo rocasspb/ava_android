@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: GPX Route Overlay**
+- [x] **Track: GPX Route Overlay**
 *Link: [./tracks/gpx_overlay_20260323/](./tracks/gpx_overlay_20260323/)*
