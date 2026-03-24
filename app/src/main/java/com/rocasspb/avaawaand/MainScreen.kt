@@ -118,6 +118,21 @@ fun MainScreen(
     }
     val coroutineScope = rememberCoroutineScope()
 
+    val gpxLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            try {
+                context.contentResolver.openInputStream(it)?.use { inputStream ->
+                    val bytes = inputStream.readBytes()
+                    viewModel.importGpx(bytes.inputStream())
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         mapContent(mapViewportState) { isOverlayLoading = it }
 
@@ -217,6 +232,20 @@ fun MainScreen(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_layers),
                         contentDescription = "Switch Map Style",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                FloatingActionButton(
+                    onClick = { gpxLauncher.launch("*/*") },
+                    containerColor = Color.White,
+                    contentColor = Color(0xFF5F6368),
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    shape = CircleShape
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_custom),
+                        contentDescription = "Import GPX",
                         modifier = Modifier.size(24.dp)
                     )
                 }
