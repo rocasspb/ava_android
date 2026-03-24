@@ -4,18 +4,18 @@
 - [x] Task: Define GPX Data Models (`GpxTrack`, `GpxPoint`, `GpxMetadata`) (8fd83d4)
 - [x] Task: Implement `GpxParser` using `XmlPullParser` to extract coordinates, name, distance, and elevation (1ffd864)
 - [x] Task: Create `GpxRepository` to handle saving/loading GPX files in internal storage (7da2bd6)
-- [ ] Task: Conductor - User Manual Verification 'Foundation & Data Layer' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Foundation & Data Layer' (f68e7a4)
 
 ## Phase 2: Logic & ViewModel Integration [checkpoint: e6666c9]
 - [x] Task: Update `MainViewModel` to manage the list of loaded GPX tracks and selection state (ef9070a)
 - [x] Task: Implement `importGpx` and `deleteGpx` logic in `MainViewModel` (fa251e4)
 - [x] Task: Add Intent Filter to `AndroidManifest.xml` and handle external GPX files in `MainActivity` (27b98a1)
-- [ ] Task: Conductor - User Manual Verification 'Logic & ViewModel Integration' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Logic & ViewModel Integration' (e6666c9)
 
 ## Phase 3: Map Visualization
-- [ ] Task: Create a `GpxOverlay` component to render routes on the Mapbox map
-- [ ] Task: Integrate `GpxOverlay` into the `MainScreen` map view
-- [ ] Task: Implement hit-testing or click handlers for selecting GPX routes on the map
+- [x] Task: Create a `GpxOverlay` component to render routes on the Mapbox map (4a19481)
+- [x] Task: Integrate `GpxOverlay` into the `MainScreen` map view (4a19481)
+- [x] Task: Implement hit-testing or click handlers for selecting GPX routes on the map (4a19481)
 - [ ] Task: Conductor - User Manual Verification 'Map Visualization' (Protocol in workflow.md)
 
 ## Phase 4: UI Components & Final Integration
