@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mapbox.common.MapboxOptions
+import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.fakes.FakeMainRepository
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import org.junit.Before
@@ -17,6 +18,7 @@ import org.junit.runner.RunWith
 class MaplessMainScreenTest : BaseComposeTest() {
 
     private val fakeRepository = FakeMainRepository()
+    private val fakeGpxRepository = FakeGpxRepository()
 
     @Before
     fun setup() {
@@ -25,7 +27,7 @@ class MaplessMainScreenTest : BaseComposeTest() {
 
     @Test
     fun testMainScreenWithoutRealMap() {
-        val viewModel = MainViewModel(fakeRepository)
+        val viewModel = MainViewModel(fakeRepository, fakeGpxRepository)
         
         setContentWithTheme {
             MainScreen(viewModel, requestPermissions = false, mapContent = { _, _ -> 

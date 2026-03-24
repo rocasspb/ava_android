@@ -1,20 +1,15 @@
 package com.rocasspb.avaawaand
 
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mapbox.maps.extension.compose.MapboxMap
 import com.mapbox.maps.extension.compose.animation.viewport.rememberMapViewportState
 import com.rocasspb.avaawaand.data.GpxPoint
 import com.rocasspb.avaawaand.data.GpxTrack
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class GpxOverlayTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class GpxOverlayTest : BaseComposeTest() {
 
     @Test
     fun testGpxOverlayRendersWithoutCrash() {
@@ -32,7 +27,7 @@ class GpxOverlayTest {
             )
         )
 
-        composeTestRule.setContent {
+        setContentWithTheme {
             val mapViewportState = rememberMapViewportState()
             MapboxMap(
                 mapViewportState = mapViewportState

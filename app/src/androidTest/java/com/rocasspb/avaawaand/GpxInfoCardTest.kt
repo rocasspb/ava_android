@@ -1,19 +1,14 @@
 package com.rocasspb.avaawaand
 
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rocasspb.avaawaand.data.GpxPoint
 import com.rocasspb.avaawaand.data.GpxTrack
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
-class GpxInfoCardTest {
-
-    @get:Rule
-    val composeTestRule = createComposeRule()
+class GpxInfoCardTest : BaseComposeTest() {
 
     @Test
     fun testGpxInfoCardDisplaysCorrectMetadata() {
@@ -26,7 +21,7 @@ class GpxInfoCardTest {
             elevationLoss = 100.0
         )
 
-        composeTestRule.setContent {
+        setContentWithTheme {
             GpxInfoCard(
                 track = track,
                 onDeleteClick = {}
@@ -51,7 +46,7 @@ class GpxInfoCardTest {
             elevationLoss = 0.0
         )
 
-        composeTestRule.setContent {
+        setContentWithTheme {
             GpxInfoCard(
                 track = track,
                 onDeleteClick = { deleteClicked = true }

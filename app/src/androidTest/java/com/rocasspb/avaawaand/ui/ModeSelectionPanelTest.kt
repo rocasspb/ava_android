@@ -4,6 +4,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rocasspb.avaawaand.BaseComposeTest
 import com.rocasspb.avaawaand.MainViewModel
 import com.rocasspb.avaawaand.ModeSelectionPanel
+import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.fakes.FakeMainRepository
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithTag
@@ -16,7 +17,7 @@ class ModeSelectionPanelTest : BaseComposeTest() {
 
     @Test
     fun testModeSelectionChangesMode() {
-        val viewModel = MainViewModel(FakeMainRepository())
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository())
         
         setContentWithTheme {
             ModeSelectionPanel(

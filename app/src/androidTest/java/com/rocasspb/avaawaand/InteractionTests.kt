@@ -8,6 +8,7 @@ import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.test.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
+import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.fakes.FakeMainRepository
 import org.junit.Before
 import org.junit.Test
@@ -22,7 +23,7 @@ class InteractionTests : BaseComposeTest() {
 
     @Before
     fun setup() {
-        viewModel = MainViewModel(FakeMainRepository())
+        viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository())
     }
 
     private fun setMainScreenContent() {
@@ -127,7 +128,7 @@ class InteractionTests : BaseComposeTest() {
         }
         
         composeTestRule.waitUntil {
-            viewModel.customModeParams.value?.minSlope ?: 0 > 30
+            (viewModel.customModeParams.value?.minSlope ?: 0) > 30
         }
         
         val newSlope = viewModel.customModeParams.value?.minSlope

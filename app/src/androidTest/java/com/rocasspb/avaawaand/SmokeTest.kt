@@ -6,6 +6,7 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.test.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import com.rocasspb.avaawaand.fakes.FakeMainRepository
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -14,13 +15,13 @@ import org.junit.runner.RunWith
 class SmokeTest : BaseComposeTest() {
 
     @Test
-    fun testTypicalUserFlow() {
-        val viewModel = MainViewModel(FakeMainRepository())
-        
+    fun testAppLaunchAndInitialState() {
+        val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository())
+
         setContentWithTheme {
             MainScreen(viewModel, requestPermissions = false, mapContent = { _, _ ->
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text("Mock Map")
+                    Text("Mock Map Content")
                 }
             })
         }

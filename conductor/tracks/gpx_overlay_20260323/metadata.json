@@ -1,8 +1,0 @@
-{
-  "track_id": "gpx_overlay_20260323",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-03-23T17:33:00Z",
-  "updated_at": "2026-03-23T17:33:00Z",
-  "description": "Add a new FAB, that would allow user to add an overlay of GPX routes over the map. Support opening GPX files with the app from the system picker. On click on GPX route, show details and allow to delete it."
-}
