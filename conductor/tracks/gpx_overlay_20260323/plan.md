@@ -12,11 +12,11 @@
 - [x] Task: Add Intent Filter to `AndroidManifest.xml` and handle external GPX files in `MainActivity` (27b98a1)
 - [x] Task: Conductor - User Manual Verification 'Logic & ViewModel Integration' (e6666c9)
 
-## Phase 3: Map Visualization
+## Phase 3: Map Visualization [checkpoint: 64304ed]
 - [x] Task: Create a `GpxOverlay` component to render routes on the Mapbox map (4a19481)
 - [x] Task: Integrate `GpxOverlay` into the `MainScreen` map view (4a19481)
 - [x] Task: Implement hit-testing or click handlers for selecting GPX routes on the map (4a19481)
-- [ ] Task: Conductor - User Manual Verification 'Map Visualization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Map Visualization' (64304ed)
 
 ## Phase 4: UI Components & Final Integration
 - [ ] Task: Add the GPX Floating Action Button (FAB) to the main screen
