@@ -18,8 +18,8 @@
 - [x] Task: Implement hit-testing or click handlers for selecting GPX routes on the map (4a19481)
 - [x] Task: Conductor - User Manual Verification 'Map Visualization' (64304ed)
 
-## Phase 4: UI Components & Final Integration
+## Phase 4: UI Components & Final Integration [checkpoint: 30bf2ee]
 - [x] Task: Add the GPX Floating Action Button (FAB) to the main screen (0cfdf75)
 - [x] Task: Implement the GPX detail card (showing distance and elevation) and delete functionality (149bf6c)
-- [ ] Task: Ensure imported routes are automatically reloaded on app start
-- [ ] Task: Conductor - User Manual Verification 'UI Components & Final Integration' (Protocol in workflow.md)
+- [x] Task: Ensure imported routes are automatically reloaded on app start (86f5106)
+- [x] Task: Conductor - User Manual Verification 'UI Components & Final Integration' (30bf2ee)
