@@ -19,7 +19,7 @@
 - [x] Task: Conductor - User Manual Verification 'Map Visualization' (64304ed)
 
 ## Phase 4: UI Components & Final Integration
-- [ ] Task: Add the GPX Floating Action Button (FAB) to the main screen
+- [x] Task: Add the GPX Floating Action Button (FAB) to the main screen (0cfdf75)
 - [ ] Task: Implement the GPX detail card (showing distance and elevation) and delete functionality
 - [ ] Task: Ensure imported routes are automatically reloaded on app start
 - [ ] Task: Conductor - User Manual Verification 'UI Components & Final Integration' (Protocol in workflow.md)
