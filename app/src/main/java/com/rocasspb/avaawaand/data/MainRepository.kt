@@ -12,6 +12,8 @@ interface MainRepository {
     fun persistRegions(regions: RegionResponse)
     fun persistAvalancheData(avalanche: AvalancheResponse)
     fun isFresh(avalancheData: AvalancheData): Boolean
+    fun isDisclaimerAccepted(): Boolean
+    fun setDisclaimerAccepted(accepted: Boolean)
 }
 
 class MainRepositoryImpl(
@@ -39,5 +41,10 @@ class MainRepositoryImpl(
         } catch (_: Exception) {
             false
         }
+    }
+
+    override fun isDisclaimerAccepted(): Boolean = persistenceManager.isDisclaimerAccepted()
+    override fun setDisclaimerAccepted(accepted: Boolean) {
+        persistenceManager.setDisclaimerAccepted(accepted)
     }
 }

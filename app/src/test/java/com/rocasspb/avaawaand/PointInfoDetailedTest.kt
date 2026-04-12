@@ -114,6 +114,8 @@ class PointInfoDetailedTest {
             override fun persistRegions(regions: RegionResponse) {}
             override fun persistAvalancheData(avalanche: AvalancheResponse) {}
             override fun isFresh(avalancheData: AvalancheData): Boolean = true
+            override fun isDisclaimerAccepted(): Boolean = true
+            override fun setDisclaimerAccepted(accepted: Boolean) {}
         }
 
         val fakeElevationProvider = FakeElevationProvider(2500)

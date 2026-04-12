@@ -44,4 +44,10 @@ class FakeMainRepository : MainRepository {
     }
 
     override fun isFresh(avalancheData: AvalancheData): Boolean = true
+
+    private var disclaimerAccepted = false
+    override fun isDisclaimerAccepted(): Boolean = disclaimerAccepted
+    override fun setDisclaimerAccepted(accepted: Boolean) {
+        disclaimerAccepted = accepted
+    }
 }

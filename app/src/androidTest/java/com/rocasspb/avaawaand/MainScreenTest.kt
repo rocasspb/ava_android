@@ -46,4 +46,26 @@ class MainScreenTest : BaseComposeTest() {
         
         onNodeWithContentDescription("Import GPX").assertExists()
     }
+
+    @Test
+    fun testDisclaimerShownAndAccepted() {
+        val repository = FakeMainRepository()
+        val viewModel = MainViewModel(repository, FakeGpxRepository())
+        
+        setContentWithTheme {
+            MainScreen(viewModel, requestPermissions = false, mapContent = { _, _ ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text("Mock Map")
+                }
+            })
+        }
+        
+        // Assert disclaimer is shown
+        onNodeWithTag("DisclaimerDialog").assertExists()
+        onNodeWithText("I Understand").performClick()
+        
+        // Assert disclaimer is hidden
+        onNodeWithTag("DisclaimerDialog").assertDoesNotExist()
+        assert(repository.isDisclaimerAccepted())
+    }
 }

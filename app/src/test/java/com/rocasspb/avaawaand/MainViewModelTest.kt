@@ -180,6 +180,22 @@ class MainViewModelTest {
         assertEquals(1, bulletin.regions.size)
         assertEquals("AT-07-23-02", bulletin.regions[0].id)
     }
+
+    @Test
+    fun testDisclaimerLogic() = runTest(testDispatcher) {
+        val fakeRepo = FakeMainRepository()
+        fakeRepo.setDisclaimerAccepted(false)
+        val viewModel = MainViewModel(fakeRepo, FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
+        
+        advanceUntilIdle()
+        
+        assertEquals(true, viewModel.showDisclaimer.value)
+        
+        viewModel.acceptDisclaimer()
+        
+        assertEquals(false, viewModel.showDisclaimer.value)
+        assertEquals(true, fakeRepo.isDisclaimerAccepted())
+    }
 }
 
 class FakeMainRepository : MainRepository {
@@ -224,4 +240,10 @@ class FakeMainRepository : MainRepository {
     }
 
     override fun isFresh(avalancheData: AvalancheData): Boolean = true
+
+    private var disclaimerAccepted = false
+    override fun isDisclaimerAccepted(): Boolean = disclaimerAccepted
+    override fun setDisclaimerAccepted(accepted: Boolean) {
+        disclaimerAccepted = accepted
+    }
 }

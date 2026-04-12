@@ -8,6 +8,15 @@ class PersistenceManager(context: Context) {
     private val gson = Gson()
     private val regionsFile = File(context.filesDir, "regions.json")
     private val avalancheFile = File(context.filesDir, "avalanche.json")
+    private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+
+    fun isDisclaimerAccepted(): Boolean {
+        return prefs.getBoolean("disclaimer_accepted", false)
+    }
+
+    fun setDisclaimerAccepted(accepted: Boolean) {
+        prefs.edit().putBoolean("disclaimer_accepted", accepted).apply()
+    }
 
     fun saveRegions(response: RegionResponse) {
         try {

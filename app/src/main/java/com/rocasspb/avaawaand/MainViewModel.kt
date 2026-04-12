@@ -84,6 +84,9 @@ class MainViewModel(
     private val _selectedGpxTrack = MutableLiveData<GpxTrack?>(null)
     val selectedGpxTrack: LiveData<GpxTrack?> = _selectedGpxTrack
 
+    private val _showDisclaimer = MutableLiveData<Boolean>(false)
+    val showDisclaimer: LiveData<Boolean> = _showDisclaimer
+
     data class PointInfo(
         val elevation: Int,
         val slope: Double,
@@ -101,6 +104,18 @@ class MainViewModel(
         loadMapConfig()
         fetchData()
         loadGpxTracks()
+        checkDisclaimer()
+    }
+
+    private fun checkDisclaimer() {
+        if (!repository.isDisclaimerAccepted()) {
+            _showDisclaimer.value = true
+        }
+    }
+
+    fun acceptDisclaimer() {
+        repository.setDisclaimerAccepted(true)
+        _showDisclaimer.value = false
     }
 
     fun loadMapConfig() {

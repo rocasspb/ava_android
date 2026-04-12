@@ -110,6 +110,7 @@ fun MainScreen(
     val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
     val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
     val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
+    val showDisclaimer by viewModel.showDisclaimer.observeAsState(false)
     var showModePanel by remember { mutableStateOf(false) }
     var isOverlayLoading by remember { mutableStateOf(false) }
 
@@ -287,6 +288,12 @@ fun MainScreen(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(16.dp)
+            )
+        }
+
+        if (showDisclaimer) {
+            DisclaimerDialog(
+                onConfirm = { viewModel.acceptDisclaimer() }
             )
         }
     }
