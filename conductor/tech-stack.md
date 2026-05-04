@@ -8,7 +8,7 @@
 ## Libraries & Frameworks
 - **Networking:** Retrofit & Gson
 - **Maps:** Mapbox Maps SDK for Android (with Mapbox Compose)
-- **Asynchronous Work:** Kotlin Coroutines & Lifecycle (ViewModel, LiveData)
+- **Asynchronous Work:** Kotlin Coroutines & Lifecycle (ViewModel, StateFlow, SharedFlow)
 - **UI Components:** Material Icons Extended
 
 ## Testing
