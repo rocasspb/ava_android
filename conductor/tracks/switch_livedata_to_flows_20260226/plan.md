@@ -6,6 +6,7 @@ Migrate the codebase from using Android LiveData to Kotlin Flows for reactive st
 - [ ] Add `lifecycle-runtime-compose` dependency to `libs.versions.toml` and `app/build.gradle.kts`
 - [ ] Verify build is still successful
 - [ ] Ensure existing tests pass
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup and Dependencies' (Protocol in workflow.md)
 
 ## Phase 2: MainViewModel Migration
 - [ ] Migrate `mapStyleUrl` to `StateFlow`
@@ -24,14 +25,17 @@ Migrate the codebase from using Android LiveData to Kotlin Flows for reactive st
 - [ ] Migrate `showDisclaimer` to `StateFlow`
 - [ ] Update all methods to use `.value` or `.emit()` instead of LiveData methods
 - [ ] Update unit tests in `MainViewModelTest.kt` to handle Flows
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: MainViewModel Migration' (Protocol in workflow.md)
 
 ## Phase 3: UI Migration (Compose)
 - [ ] Update `MainScreen.kt` to use `collectAsStateWithLifecycle()` instead of `observeAsState()`
 - [ ] Update `ModeSelectionPanel.kt` to use `collectAsStateWithLifecycle()`
 - [ ] Update any other composables observing ViewModel state
 - [ ] Verify UI behavior is unchanged
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: UI Migration (Compose)' (Protocol in workflow.md)
 
 ## Phase 4: Cleanup and Verification
 - [ ] Remove `androidx.compose.runtime.livedata` and `androidx.lifecycle.livedata.ktx` if no longer needed
 - [ ] Final build and test run
 - [ ] Check for any remaining LiveData usage in the project
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Cleanup and Verification' (Protocol in workflow.md)
