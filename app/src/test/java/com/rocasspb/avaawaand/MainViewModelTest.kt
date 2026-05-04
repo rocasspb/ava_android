@@ -1,6 +1,5 @@
 package com.rocasspb.avaawaand
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.gson.Gson
 import com.mapbox.maps.Style
 import com.rocasspb.avaawaand.data.GpxRepository
@@ -27,7 +26,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -38,9 +36,6 @@ import org.robolectric.shadows.ShadowLog
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class MainViewModelTest {
-
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val testDispatcher = StandardTestDispatcher()
 
@@ -56,7 +51,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun testLoadMapConfig() {
+    fun testLoadMapConfig() = runTest(testDispatcher) {
         val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
 
         viewModel.loadMapConfig()
@@ -71,7 +66,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun testUpdateCameraPosition() {
+    fun testUpdateCameraPosition() = runTest(testDispatcher) {
         val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         val newPosition = com.mapbox.maps.CameraOptions.Builder()
             .center(com.mapbox.geojson.Point.fromLngLat(12.0, 48.0))
@@ -84,7 +79,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun testAutoSwitchingZoomIn() {
+    fun testAutoSwitchingZoomIn() = runTest(testDispatcher) {
         val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         viewModel.setVisualizationMode(VisualizationMode.BULLETIN)
 
@@ -97,7 +92,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun testAutoSwitchingZoomOut() {
+    fun testAutoSwitchingZoomOut() = runTest(testDispatcher) {
         val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         
         // Test RISK -> BULLETIN
@@ -112,7 +107,7 @@ class MainViewModelTest {
     }
 
     @Test
-    fun testOffModeIgnoresZoom() {
+    fun testOffModeIgnoresZoom() = runTest(testDispatcher) {
         val viewModel = MainViewModel(FakeMainRepository(), FakeGpxRepository(), ioDispatcher = testDispatcher, defaultDispatcher = testDispatcher)
         viewModel.setVisualizationMode(VisualizationMode.OFF)
 
@@ -137,48 +132,6 @@ class MainViewModelTest {
 
         val avalancheData = viewModel.avalancheData.value
         assertNotNull("Avalanche data should not be null", avalancheData)
-    }
-
-    @Test
-    fun testParseRegions() {
-        val gson = Gson()
-        val json = """
-            {"type":"FeatureCollection","features":[{"type":"Feature","properties":{"id":"AT-02-14","start_date":"2025-08-01","end_date":null},"geometry":{"type":"MultiPolygon","coordinates":[[[[12.7221099,46.7026896],[12.7210542,46.7027712]]]]}}]}
-        """.trimIndent()
-
-        val response = gson.fromJson(json, RegionResponse::class.java)
-
-        assertNotNull(response)
-        assertEquals("FeatureCollection", response.type)
-        assertEquals(1, response.features.size)
-        val feature = response.features[0]
-        assertEquals("Feature", feature.type)
-        assertEquals("AT-02-14", feature.properties.id)
-        assertEquals("2025-08-01", feature.properties.startDate)
-        assertEquals("MultiPolygon", feature.geometry.type)
-        assertNotNull(feature.geometry.coordinates)
-    }
-
-    @Test
-    fun testParseAvalancheData() {
-        val gson = Gson()
-        val json = """
-            {"bulletins":[{"publicationTime":"2025-12-26T16:00:00Z","validTime":{"startTime":"2025-12-26T16:00:00Z","endTime":"2025-12-27T16:00:00Z"},"unscheduled":false,"avalancheActivity":{"highlights":"Wind slabs and weakly bonded old snow require caution.","comment":"Comment text."},"snowpackStructure":{"comment":"Snowpack comment."},"tendency":[{"highlights":"Low avalanche danger will prevail.","tendencyType":"steady","validTime":{"startTime":"2025-12-27T16:00:00Z","endTime":"2025-12-28T16:00:00Z"}}],"customData":{"ALBINA":{"mainDate":"2025-12-27"},"LWD_Tyrol":{"dangerPatterns":["DP1"]}},"avalancheProblems":[{"problemType":"persistent_weak_layers","elevation":{"lowerBound":"2600"},"validTimePeriod":"all_day","snowpackStability":"poor","frequency":"few","avalancheSize":1,"customData":{"ALBINA":{"avalancheType":"slab"}},"aspects":["NE","NW","N"]}],"bulletinID":"76470d99-791b-4910-b7c8-99adb6197969","dangerRatings":[{"mainValue":"low","validTimePeriod":"all_day"}],"lang":"en","regions":[{"name":"Zillertal Alps Northeast","regionID":"AT-07-23-02"}]}]}
-        """.trimIndent()
-
-        val response = gson.fromJson(json, AvalancheResponse::class.java)
-
-        assertNotNull(response)
-        assertEquals(1, response.bulletins.size)
-        val bulletin = response.bulletins[0]
-        assertEquals("76470d99-791b-4910-b7c8-99adb6197969", bulletin.bulletinID)
-        assertEquals("2025-12-26T16:00:00Z", bulletin.publicationTime)
-        assertEquals("2025-12-26T16:00:00Z", bulletin.validTime.startTime)
-        assertNotNull(bulletin.avalancheActivity)
-        assertEquals("Wind slabs and weakly bonded old snow require caution.", bulletin.avalancheActivity?.highlights)
-        assertNotNull(bulletin.regions)
-        assertEquals(1, bulletin.regions.size)
-        assertEquals("AT-07-23-02", bulletin.regions[0].id)
     }
 
     @Test

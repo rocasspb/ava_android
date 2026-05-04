@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -21,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapboxMap
@@ -105,12 +105,12 @@ fun MainScreen(
         }
     }
 
-    val visualizationMode by viewModel.visualizationMode.observeAsState(VisualizationMode.BULLETIN)
-    val pointInfo by viewModel.pointInfo.observeAsState()
-    val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
-    val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
-    val initialCameraPosition by viewModel.initialCameraPosition.observeAsState()
-    val showDisclaimer by viewModel.showDisclaimer.observeAsState(false)
+    val visualizationMode by viewModel.visualizationMode.collectAsStateWithLifecycle()
+    val pointInfo by viewModel.pointInfo.collectAsStateWithLifecycle()
+    val selectedGpxTrack by viewModel.selectedGpxTrack.collectAsStateWithLifecycle()
+    val locationPermissionGranted by viewModel.locationPermissionGranted.collectAsStateWithLifecycle()
+    val initialCameraPosition by viewModel.initialCameraPosition.collectAsStateWithLifecycle()
+    val showDisclaimer by viewModel.showDisclaimer.collectAsStateWithLifecycle()
     var showModePanel by remember { mutableStateOf(false) }
     var isOverlayLoading by remember { mutableStateOf(false) }
 
@@ -305,11 +305,11 @@ fun MapContent(
     mapViewportState: MapViewportState,
     onLoadingChange: (Boolean) -> Unit
 ) {
-    val mapStyleUrl by viewModel.mapStyleUrl.observeAsState(Style.OUTDOORS)
-    val generationRules by viewModel.generationRules.observeAsState(emptyList())
-    val gpxTracks by viewModel.gpxTracks.observeAsState(emptyList())
-    val selectedGpxTrack by viewModel.selectedGpxTrack.observeAsState()
-    val locationPermissionGranted by viewModel.locationPermissionGranted.observeAsState(false)
+    val mapStyleUrl by viewModel.mapStyleUrl.collectAsStateWithLifecycle()
+    val generationRules by viewModel.generationRules.collectAsStateWithLifecycle()
+    val gpxTracks by viewModel.gpxTracks.collectAsStateWithLifecycle()
+    val selectedGpxTrack by viewModel.selectedGpxTrack.collectAsStateWithLifecycle()
+    val locationPermissionGranted by viewModel.locationPermissionGranted.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
     var overlayJob by remember { mutableStateOf<Job?>(null) }
 

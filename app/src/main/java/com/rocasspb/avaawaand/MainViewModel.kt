@@ -1,8 +1,6 @@
 package com.rocasspb.avaawaand
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -32,6 +30,12 @@ import com.rocasspb.avaawaand.utils.GeometryUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import kotlin.math.max
@@ -45,47 +49,47 @@ class MainViewModel(
 ) : ViewModel() {
     private val gpxParser = GpxParser()
 
-    private val _mapStyleUrl = MutableLiveData<String>()
-    val mapStyleUrl: LiveData<String> = _mapStyleUrl
+    private val _mapStyleUrl = MutableStateFlow(Style.OUTDOORS)
+    val mapStyleUrl: StateFlow<String> = _mapStyleUrl.asStateFlow()
 
-    private val _initialCameraPosition = MutableLiveData<CameraOptions>()
-    val initialCameraPosition: LiveData<CameraOptions> = _initialCameraPosition
+    private val _initialCameraPosition = MutableStateFlow<CameraOptions?>(null)
+    val initialCameraPosition: StateFlow<CameraOptions?> = _initialCameraPosition.asStateFlow()
 
-    private val _cameraPosition = MutableLiveData<CameraOptions>()
-    val cameraPosition: LiveData<CameraOptions> = _cameraPosition
+    private val _cameraPosition = MutableStateFlow<CameraOptions?>(null)
+    val cameraPosition: StateFlow<CameraOptions?> = _cameraPosition.asStateFlow()
 
-    private val _regions = MutableLiveData<RegionResponse>()
-    val regions: LiveData<RegionResponse> = _regions
+    private val _regions = MutableStateFlow<RegionResponse?>(null)
+    val regions: StateFlow<RegionResponse?> = _regions.asStateFlow()
 
-    private val _avalancheData = MutableLiveData<List<AvalancheData>>()
-    val avalancheData: LiveData<List<AvalancheData>> = _avalancheData
+    private val _avalancheData = MutableStateFlow<List<AvalancheData>>(emptyList())
+    val avalancheData: StateFlow<List<AvalancheData>> = _avalancheData.asStateFlow()
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _error = MutableSharedFlow<String?>()
+    val error: SharedFlow<String?> = _error.asSharedFlow()
 
-    private val _generationRules = MutableLiveData<List<GenerationRule>>()
-    val generationRules: LiveData<List<GenerationRule>> = _generationRules
+    private val _generationRules = MutableStateFlow<List<GenerationRule>>(emptyList())
+    val generationRules: StateFlow<List<GenerationRule>> = _generationRules.asStateFlow()
 
-    private val _visualizationMode = MutableLiveData<VisualizationMode>(VisualizationMode.BULLETIN)
-    val visualizationMode: LiveData<VisualizationMode> = _visualizationMode
+    private val _visualizationMode = MutableStateFlow(VisualizationMode.BULLETIN)
+    val visualizationMode: StateFlow<VisualizationMode> = _visualizationMode.asStateFlow()
 
-    private val _customModeParams = MutableLiveData<CustomModeParams>(CustomModeParams())
-    val customModeParams: LiveData<CustomModeParams> = _customModeParams
+    private val _customModeParams = MutableStateFlow(CustomModeParams())
+    val customModeParams: StateFlow<CustomModeParams> = _customModeParams.asStateFlow()
 
-    private val _pointInfo = MutableLiveData<PointInfo?>()
-    val pointInfo: LiveData<PointInfo?> = _pointInfo
+    private val _pointInfo = MutableStateFlow<PointInfo?>(null)
+    val pointInfo: StateFlow<PointInfo?> = _pointInfo.asStateFlow()
 
-    private val _locationPermissionGranted = MutableLiveData<Boolean>(false)
-    val locationPermissionGranted: LiveData<Boolean> = _locationPermissionGranted
+    private val _locationPermissionGranted = MutableStateFlow(false)
+    val locationPermissionGranted: StateFlow<Boolean> = _locationPermissionGranted.asStateFlow()
 
-    private val _gpxTracks = MutableLiveData<List<GpxTrack>>(emptyList())
-    val gpxTracks: LiveData<List<GpxTrack>> = _gpxTracks
+    private val _gpxTracks = MutableStateFlow<List<GpxTrack>>(emptyList())
+    val gpxTracks: StateFlow<List<GpxTrack>> = _gpxTracks.asStateFlow()
 
-    private val _selectedGpxTrack = MutableLiveData<GpxTrack?>(null)
-    val selectedGpxTrack: LiveData<GpxTrack?> = _selectedGpxTrack
+    private val _selectedGpxTrack = MutableStateFlow<GpxTrack?>(null)
+    val selectedGpxTrack: StateFlow<GpxTrack?> = _selectedGpxTrack.asStateFlow()
 
-    private val _showDisclaimer = MutableLiveData<Boolean>(false)
-    val showDisclaimer: LiveData<Boolean> = _showDisclaimer
+    private val _showDisclaimer = MutableStateFlow(false)
+    val showDisclaimer: StateFlow<Boolean> = _showDisclaimer.asStateFlow()
 
     data class PointInfo(
         val elevation: Int,
@@ -164,7 +168,7 @@ class MainViewModel(
 
             try {
                 Log.d("MainViewModel", "Loading data")
-                _error.value = null
+                _error.emit(null)
                 val regionsResponse = repository.getRegions()
                 repository.persistRegions(regionsResponse)
                 _regions.value = regionsResponse
@@ -175,9 +179,9 @@ class MainViewModel(
                 Log.d("MainViewModel", "Data loaded")
                 calculateRules()
             } catch (e: Exception) {
-                if (_avalancheData.value == null) {
-                    _error.value = e.message
-                    Log.e("MainViewModel", "Failed to load data: ${_error.value}")
+                if (_avalancheData.value.isEmpty()) {
+                    _error.emit(e.message)
+                    Log.e("MainViewModel", "Failed to load data: ${e.message}")
                 }
             }
         }
@@ -186,7 +190,7 @@ class MainViewModel(
     fun loadGpxTracks() {
         viewModelScope.launch(ioDispatcher) {
             val tracks = gpxRepository.getAllTracks()
-            _gpxTracks.postValue(tracks)
+            _gpxTracks.value = tracks
         }
     }
 
@@ -197,7 +201,7 @@ class MainViewModel(
                 tracks.forEach { gpxRepository.saveTrack(it) }
                 loadGpxTracks()
             } catch (e: Exception) {
-                _error.postValue("Failed to import GPX: ${e.message}")
+                _error.emit("Failed to import GPX: ${e.message}")
             }
         }
     }
@@ -206,7 +210,7 @@ class MainViewModel(
         viewModelScope.launch(ioDispatcher) {
             gpxRepository.deleteTrack(trackId)
             if (_selectedGpxTrack.value?.id == trackId) {
-                _selectedGpxTrack.postValue(null)
+                _selectedGpxTrack.value = null
             }
             loadGpxTracks()
         }
@@ -240,7 +244,7 @@ class MainViewModel(
     }
 
     private fun handleZoomChange(zoom: Double) {
-        val currentMode = _visualizationMode.value ?: return
+        val currentMode = _visualizationMode.value
         if (currentMode == VisualizationMode.OFF) return
 
         if (zoom >= 10.0) {
@@ -255,17 +259,16 @@ class MainViewModel(
     }
     
     fun calculateRules() {
-         // Capture current state values on the caller thread (usually Main) 
-         // to avoid race conditions when reading LiveData.value inside the coroutine
-         val bulletins = _avalancheData.value ?: return
+         val bulletins = _avalancheData.value
+         if (bulletins.isEmpty()) return
          val regions = _regions.value ?: return
-         val mode = _visualizationMode.value ?: VisualizationMode.BULLETIN
-         val customParams = _customModeParams.value ?: CustomModeParams()
+         val mode = _visualizationMode.value
+         val customParams = _customModeParams.value
 
          calculationJob?.cancel()
          calculationJob = viewModelScope.launch(defaultDispatcher) {
              if (mode == VisualizationMode.OFF) {
-                 _generationRules.postValue(emptyList())
+                 _generationRules.value = emptyList()
                  return@launch
              }
 
@@ -285,7 +288,7 @@ class MainViewModel(
                      )
                  }
 
-                 _generationRules.postValue(rules)
+                 _generationRules.value = rules
              } else {
                  val bands = AvalancheLogic.processRegionElevations(bulletins)
                  val rules = AvalancheLogic.generateRules(
@@ -293,7 +296,7 @@ class MainViewModel(
                      regions.features,
                      mode
                  )
-                 _generationRules.postValue(rules)
+                 _generationRules.value = rules
              }
          }
     }
@@ -319,7 +322,7 @@ class MainViewModel(
 
             // Extract avalanche details
             val regions = _regions.value?.features ?: emptyList()
-            val bulletins = _avalancheData.value ?: emptyList()
+            val bulletins = _avalancheData.value
             
             val containingRegion = regions.find { 
                 GeometryUtils.isPointInGeometry(geoPoint, it.geometry) 
@@ -344,7 +347,7 @@ class MainViewModel(
                 }
             }
 
-            _pointInfo.postValue(PointInfo(elevation, metrics.slope, metrics.aspect, dangerRatings, problems, avalancheActivity))
+            _pointInfo.value = PointInfo(elevation, metrics.slope, metrics.aspect, dangerRatings, problems, avalancheActivity)
         }
     }
 
@@ -360,7 +363,7 @@ class MainViewModel(
     }
 
     fun clearPointInfo() {
-        _pointInfo.postValue(null)
+        _pointInfo.value = null
     }
 
     fun setLocationPermissionGranted(granted: Boolean) {

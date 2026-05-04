@@ -1,8 +1,6 @@
 package com.rocasspb.avaawaand
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.rocasspb.avaawaand.data.GpxPoint
-import com.rocasspb.avaawaand.data.GpxRepository
 import com.rocasspb.avaawaand.data.GpxTrack
 import com.rocasspb.avaawaand.fakes.FakeGpxRepository
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +14,6 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -27,9 +24,6 @@ import java.io.ByteArrayInputStream
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class MainViewModelGpxTest {
-
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var gpxRepository: FakeGpxRepository
@@ -65,8 +59,8 @@ class MainViewModelGpxTest {
         advanceUntilIdle()
         
         val tracks = viewModel.gpxTracks.value
-        assertEquals(1, tracks?.size)
-        assertEquals("New Track", tracks?.get(0)?.name)
+        assertEquals(1, tracks.size)
+        assertEquals("New Track", tracks[0].name)
     }
 
     @Test
@@ -80,7 +74,7 @@ class MainViewModelGpxTest {
         advanceUntilIdle()
         
         val tracks = viewModel.gpxTracks.value
-        assertTrue(tracks?.isEmpty() == true)
+        assertTrue(tracks.isEmpty())
     }
 
     @Test
@@ -99,8 +93,8 @@ class MainViewModelGpxTest {
         advanceUntilIdle()
         
         val tracks = viewModel.gpxTracks.value
-        assertEquals(1, tracks?.size)
-        assertEquals("id", tracks?.get(0)?.id)
+        assertEquals(1, tracks.size)
+        assertEquals("id", tracks[0].id)
     }
 
     @Test
