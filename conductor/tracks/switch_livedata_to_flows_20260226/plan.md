@@ -2,11 +2,11 @@
 
 Migrate the codebase from using Android LiveData to Kotlin Flows for reactive state management.
 
-## Phase 1: Setup and Dependencies
-- [ ] Add `lifecycle-runtime-compose` dependency to `libs.versions.toml` and `app/build.gradle.kts`
-- [ ] Verify build is still successful
-- [ ] Ensure existing tests pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Setup and Dependencies' (Protocol in workflow.md)
+## Phase 1: Setup and Dependencies [checkpoint: 37bfc87]
+- [x] Add `lifecycle-runtime-compose` dependency to `libs.versions.toml` and `app/build.gradle.kts` 291a6c8
+- [x] Verify build is still successful 291a6c8
+- [x] Ensure existing tests pass 291a6c8
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Setup and Dependencies' (Protocol in workflow.md) 37bfc87
 
 ## Phase 2: MainViewModel Migration
 - [ ] Migrate `mapStyleUrl` to `StateFlow`
