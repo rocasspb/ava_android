@@ -2,11 +2,13 @@
 
 ## Core Technologies
 - **Language:** Kotlin (JVM 11)
+- **Multiplatform:** Kotlin Multiplatform (Android & Web/Wasm targets)
 - **UI Framework:** Jetpack Compose (Material 3)
 - **Architecture:** MVVM (Model-View-ViewModel)
 
 ## Libraries & Frameworks
-- **Networking:** Retrofit & Gson
+- **Networking:** Retrofit & Kotlinx Serialization
+- **Serialization:** Kotlinx Serialization (Common)
 - **Maps:** Mapbox Maps SDK for Android (with Mapbox Compose)
 - **Asynchronous Work:** Kotlin Coroutines & Lifecycle (ViewModel, StateFlow, SharedFlow)
 - **UI Components:** Material Icons Extended
