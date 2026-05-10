@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.rocasspb.avaawaand.data.DataSerializationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-05-10T18:33:23.861Z" hostname="DESKTOP-0RG3ICA" time="0.034">
-  <properties/>
-  <testcase name="testGpxTrackSerialization" classname="com.rocasspb.avaawaand.data.DataSerializationTest" time="0.031"/>
-  <testcase name="testAvalancheResponseSerialization" classname="com.rocasspb.avaawaand.data.DataSerializationTest" time="0.002"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
