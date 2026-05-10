@@ -157,6 +157,6 @@ object RasterGenerator {
     
     private fun getDangerValue(level: String?): Int {
         if (level == null) return 0
-        return AvalancheConfig.DANGER_LEVEL_VALUES[level.lowercase()] ?: 0
+        return AvalancheConfig.DANGER_LEVEL_VALUES[level] ?: 0
     }
 }

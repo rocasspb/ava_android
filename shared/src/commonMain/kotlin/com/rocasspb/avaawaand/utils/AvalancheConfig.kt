@@ -25,7 +25,6 @@ object AvalancheConfig {
         "considerable" to 3,
         "high" to 4,
         "very_high" to 5,
-        "very high" to 5
     )
 
     data class SteepnessThreshold(
