@@ -12,5 +12,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: KMP Core Migration (Simplified)**
+- [~] **Track: KMP Core Migration (Simplified)**
 *Link: [./tracks/kmp_20260510/](./tracks/kmp_20260510/)*

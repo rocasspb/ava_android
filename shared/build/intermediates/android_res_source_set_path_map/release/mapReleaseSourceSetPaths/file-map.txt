@@ -1,0 +1,10 @@
+com.rocasspb.avaawaand.shared-pngs-0 E:\dev\AvaAwaAnd\shared\build\generated\res\pngs\release
+com.rocasspb.avaawaand.shared-resValues-1 E:\dev\AvaAwaAnd\shared\build\generated\res\resValues\release
+com.rocasspb.avaawaand.shared-updated_navigation_xml-2 E:\dev\AvaAwaAnd\shared\build\generated\updated_navigation_xml\release
+com.rocasspb.avaawaand.shared-mergeReleaseResources-3 E:\dev\AvaAwaAnd\shared\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
+com.rocasspb.avaawaand.shared-mergeReleaseResources-4 E:\dev\AvaAwaAnd\shared\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
+com.rocasspb.avaawaand.shared-release-5 E:\dev\AvaAwaAnd\shared\build\intermediates\merged_res\release\mergeReleaseResources
+com.rocasspb.avaawaand.shared-androidMain-6 E:\dev\AvaAwaAnd\shared\src\androidMain\res
+com.rocasspb.avaawaand.shared-androidRelease-7 E:\dev\AvaAwaAnd\shared\src\androidRelease\res
+com.rocasspb.avaawaand.shared-main-8 E:\dev\AvaAwaAnd\shared\src\main\res
+com.rocasspb.avaawaand.shared-release-9 E:\dev\AvaAwaAnd\shared\src\release\res

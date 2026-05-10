@@ -1,0 +1,10 @@
+{
+  "name": "AvaAwaAnd-shared",
+  "version": "0.0.0-unspecified",
+  "main": "AvaAwaAnd-shared.mjs",
+  "devDependencies": {},
+  "dependencies": {},
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "bundledDependencies": []
+}

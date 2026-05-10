@@ -43,3 +43,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "AvaAwaAnd"
 include(":app")
+include(":shared")
