@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.rocasspb.avaawaand.logic.RasterGeneratorTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-05-10T18:33:23.897Z" hostname="DESKTOP-0RG3ICA" time="0.042">
+  <properties/>
+  <testcase name="testGenerateRasterAppliesSteepnessLogic" classname="com.rocasspb.avaawaand.logic.RasterGeneratorTest" time="0.018"/>
+  <testcase name="testGenerateRasterFiltersByElevation" classname="com.rocasspb.avaawaand.logic.RasterGeneratorTest" time="0.005"/>
+  <testcase name="testGenerateRasterAppliesAspectFiltering" classname="com.rocasspb.avaawaand.logic.RasterGeneratorTest" time="0.016"/>
+  <testcase name="testGenerateRasterReturnsNullForInvalidBounds" classname="com.rocasspb.avaawaand.logic.RasterGeneratorTest" time="0.001"/>
+  <testcase name="testGenerateRasterGeneratesWithCorrectColor" classname="com.rocasspb.avaawaand.logic.RasterGeneratorTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

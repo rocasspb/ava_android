@@ -3,6 +3,8 @@ package com.rocasspb.avaawaand.data
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+import kotlinx.serialization.json.JsonNames
+
 @Serializable
 data class RegionResponse(
     @SerialName("type") val type: String,
@@ -31,6 +33,7 @@ data class Geometry(
 
 @Serializable
 data class Region(
+    @JsonNames("regionID", "id")
     @SerialName("regionID") val id: String,
     @SerialName("name") val name: String
 )

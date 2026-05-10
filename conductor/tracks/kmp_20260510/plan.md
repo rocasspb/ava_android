@@ -14,20 +14,20 @@ This plan outlines the migration of core data models and business logic to a Kot
 - [x] Task: Write tests in `commonTest` to verify model serialization/deserialization if applicable.
 - [x] Task: Conductor - User Manual Verification 'Data Model Migration' (Protocol in workflow.md)
 
-## Phase 3: Logic Refactoring (Decoupling Bitmap)
-- [ ] Task: Refactor `RasterGenerator` to remove dependency on `android.graphics.Bitmap`.
-- [ ] Task: Create a platform-agnostic representation for the generated terrain overlay (e.g., `ColorBuffer` or `ByteArray`).
-- [ ] Task: Update Android implementation of `RasterGenerator` usage to convert the shared representation back to `Bitmap` for Mapbox.
-- [ ] Task: Conductor - User Manual Verification 'Logic Refactoring' (Protocol in workflow.md)
+## Phase 3: Logic Refactoring (Decoupling Bitmap) [checkpoint: 1e8ae77]
+- [x] Task: Refactor `RasterGenerator` to remove dependency on `android.graphics.Bitmap`.
+- [x] Task: Create a platform-agnostic representation for the generated terrain overlay (e.g., `ColorBuffer` or `ByteArray`).
+- [x] Task: Update Android implementation of `RasterGenerator` usage to convert the shared representation back to `Bitmap` for Mapbox.
+- [x] Task: Conductor - User Manual Verification 'Logic Refactoring' (Protocol in workflow.md)
 
-## Phase 4: Business Logic Migration & Cross-Platform Testing
-- [ ] Task: Move `AvalancheLogic`, `GeometryUtils`, `TerrainUtils`, and refactored `RasterGenerator` to `commonMain`.
-- [ ] Task: Migrate existing unit tests for this logic to `commonTest`.
-- [ ] Task: Execute and pass all unit tests on the Android target.
-- [ ] Task: Execute and pass all unit tests on the Web (JS/Wasm) target.
-- [ ] Task: Conductor - User Manual Verification 'Business Logic Migration & Cross-Platform Testing' (Protocol in workflow.md)
+## Phase 4: Business Logic Migration & Cross-Platform Testing [checkpoint: 1e8ae77]
+- [x] Task: Move `AvalancheLogic`, `GeometryUtils`, `TerrainUtils`, and refactored `RasterGenerator` to `commonMain`.
+- [x] Task: Migrate existing unit tests for this logic to `commonTest`.
+- [x] Task: Execute and pass all unit tests on the Android target.
+- [x] Task: Execute and pass all unit tests on the Web (JS/Wasm) target.
+- [x] Task: Conductor - User Manual Verification 'Business Logic Migration & Cross-Platform Testing' (Protocol in workflow.md)
 
 ## Phase 5: Final Android Integration & Cleanup
-- [ ] Task: Ensure the Android app compiles and runs correctly with all core logic moved to the `shared` module.
-- [ ] Task: Perform manual smoke tests of all visualization modes (Bulletin, Risk, Custom) in the Android app.
-- [ ] Task: Conductor - User Manual Verification 'Final Android Integration & Cleanup' (Protocol in workflow.md)
+- [x] Task: Ensure the Android app compiles and runs correctly with all core logic moved to the `shared` module.
+- [x] Task: Perform manual smoke tests of all visualization modes (Bulletin, Risk, Custom) in the Android app.
+- [x] Task: Conductor - User Manual Verification 'Final Android Integration & Cleanup' (Protocol in workflow.md)

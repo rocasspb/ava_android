@@ -1,0 +1,10 @@
+{
+  "name": "AvaAwaAnd-shared-test",
+  "version": "0.0.0-unspecified",
+  "main": "AvaAwaAnd-shared-test.mjs",
+  "devDependencies": {},
+  "dependencies": {},
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "bundledDependencies": []
+}

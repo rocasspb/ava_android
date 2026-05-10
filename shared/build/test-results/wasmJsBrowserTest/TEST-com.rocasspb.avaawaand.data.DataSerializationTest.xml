@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.rocasspb.avaawaand.data.DataSerializationTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-05-10T18:33:36.242Z" hostname="DESKTOP-0RG3ICA" time="0.001">
+  <properties/>
+  <testcase name="testAvalancheResponseSerialization[wasmJs, browser, ChromeHeadless148.0.0.0, Windows10]" classname="com.rocasspb.avaawaand.data.DataSerializationTest" time="0.001"/>
+  <testcase name="testGpxTrackSerialization[wasmJs, browser, ChromeHeadless148.0.0.0, Windows10]" classname="com.rocasspb.avaawaand.data.DataSerializationTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

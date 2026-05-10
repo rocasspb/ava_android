@@ -1,16 +1,16 @@
 -- Merging decision tree log ---
 manifest
-ADDED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml:2:13-83
-INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml:2:13-83
+ADDED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml:2:13-83
+INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml:2:13-83
 	package
-		INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml
+		INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml
 	xmlns:android
-		ADDED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml:2:23-81
+		ADDED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml:2:23-81
 uses-sdk
-INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml reason: use-sdk injection requested
-INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml
-INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml
+INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml reason: use-sdk injection requested
+INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml
+INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml
 	android:targetSdkVersion
-		INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml
+		INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml
 	android:minSdkVersion
-		INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest6887038096067098519.xml
+		INJECTED from E:\dev\AvaAwaAnd\shared\build\intermediates\tmp\ProcessLibraryManifest\debug\tempAndroidManifest17580293131042311984.xml

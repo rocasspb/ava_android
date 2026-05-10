@@ -1,11 +1,15 @@
 package com.rocasspb.avaawaand.data
 
 import android.content.Context
-import com.google.gson.Gson
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.io.File
 
 class PersistenceManager(context: Context) {
-    private val gson = Gson()
+    private val json = Json { 
+        ignoreUnknownKeys = true 
+        coerceInputValues = true
+    }
     private val regionsFile = File(context.filesDir, "regions.json")
     private val avalancheFile = File(context.filesDir, "avalanche.json")
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -20,7 +24,7 @@ class PersistenceManager(context: Context) {
 
     fun saveRegions(response: RegionResponse) {
         try {
-            regionsFile.writeText(gson.toJson(response))
+            regionsFile.writeText(json.encodeToString(response))
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -29,7 +33,7 @@ class PersistenceManager(context: Context) {
     fun getRegions(): RegionResponse? {
         return try {
             if (regionsFile.exists()) {
-                gson.fromJson(regionsFile.readText(), RegionResponse::class.java)
+                json.decodeFromString<RegionResponse>(regionsFile.readText())
             } else {
                 null
             }
@@ -40,7 +44,7 @@ class PersistenceManager(context: Context) {
 
     fun saveAvalancheData(response: AvalancheResponse) {
         try {
-            avalancheFile.writeText(gson.toJson(response))
+            avalancheFile.writeText(json.encodeToString(response))
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -49,7 +53,7 @@ class PersistenceManager(context: Context) {
     fun getAvalancheData(): AvalancheResponse? {
         return try {
             if (avalancheFile.exists()) {
-                gson.fromJson(avalancheFile.readText(), AvalancheResponse::class.java)
+                json.decodeFromString<AvalancheResponse>(avalancheFile.readText())
             } else {
                 null
             }

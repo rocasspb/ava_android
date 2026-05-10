@@ -3,6 +3,7 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.compose.compiler)
 }
 
@@ -73,9 +74,11 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
     
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
+    implementation(libs.retrofit.converter.serialization)
     implementation(libs.gson)
 
     // Compose
