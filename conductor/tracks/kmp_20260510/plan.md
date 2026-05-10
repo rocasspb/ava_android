@@ -2,11 +2,11 @@
 
 This plan outlines the migration of core data models and business logic to a Kotlin Multiplatform shared module, focusing on platform independence and cross-platform verification (Android & Web).
 
-## Phase 1: Shared Module Infrastructure
-- [~] Task: Create KMP `shared` module with Android and Web (JS/Wasm) targets.
-- [ ] Task: Configure shared dependencies in `libs.versions.toml` and `shared/build.gradle.kts`.
-- [ ] Task: Verify shared module build for both targets.
-- [ ] Task: Conductor - User Manual Verification 'Shared Module Infrastructure' (Protocol in workflow.md)
+## Phase 1: Shared Module Infrastructure [checkpoint: a7fc33f]
+- [x] Task: Create KMP `shared` module with Android and Web (JS/Wasm) targets.
+- [x] Task: Configure shared dependencies in `libs.versions.toml` and `shared/build.gradle.kts`.
+- [x] Task: Verify shared module build for both targets.
+- [x] Task: Conductor - User Manual Verification 'Shared Module Infrastructure' (Protocol in workflow.md)
 
 ## Phase 2: Data Model Migration
 - [ ] Task: Migrate `AvalancheData`, `Region`, `GpxData`, and related constants to `commonMain`.
