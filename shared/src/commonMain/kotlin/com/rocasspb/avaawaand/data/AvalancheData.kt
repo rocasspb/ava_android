@@ -49,7 +49,9 @@ data class DangerRating(
 
 @Serializable
 data class Elevation(
+    @Serializable(with = FlexibleStringSerializer::class)
     @SerialName("lowerBound") val lowerBound: String? = null,
+    @Serializable(with = FlexibleStringSerializer::class)
     @SerialName("upperBound") val upperBound: String? = null
 )
 

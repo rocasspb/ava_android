@@ -53,6 +53,7 @@ object RasterGenerator {
         val highColor = parseHexColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
         val considerableColor = parseHexColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
         val ruleColors = rules.map { parseHexColor(it.color) }
+        var coloredPixels = 0
 
         for (y in 0 until height) {
             for (x in 0 until width) {
@@ -121,11 +122,15 @@ object RasterGenerator {
                     }
                     pixelColor = finalColor
                 }
+                if (pixelColor != 0x00000000) {
+                    coloredPixels++
+                }
                 pixels[y * width + x] = pixelColor
             }
         }
 
         val duration = PlatformUtils.currentTimeMillis() - startTime
+        logger?.d(TAG, "generateRaster complete. Colored pixels: $coloredPixels / ${width * height}. Rules: ${rules.size}")
         updateStats(duration, logger)
         
         return RasterData(width, height, pixels)
@@ -152,6 +157,6 @@ object RasterGenerator {
     
     private fun getDangerValue(level: String?): Int {
         if (level == null) return 0
-        return AvalancheConfig.DANGER_LEVEL_VALUES[level] ?: 0
+        return AvalancheConfig.DANGER_LEVEL_VALUES[level.lowercase()] ?: 0
     }
 }

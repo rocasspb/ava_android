@@ -101,10 +101,10 @@ object AvalancheLogic {
     private fun getMaxDanger(ratings: List<DangerRating>): DangerRating? {
         if (ratings.isEmpty()) return null
         var maxRating = ratings[0]
-        var maxVal = AvalancheConfig.DANGER_LEVEL_VALUES[maxRating.mainValue] ?: 0
+        var maxVal = AvalancheConfig.DANGER_LEVEL_VALUES[maxRating.mainValue.lowercase()] ?: 0
         
         for (r in ratings) {
-            val v = AvalancheConfig.DANGER_LEVEL_VALUES[r.mainValue] ?: 0
+            val v = AvalancheConfig.DANGER_LEVEL_VALUES[r.mainValue.lowercase()] ?: 0
             if (v > maxVal) {
                 maxVal = v
                 maxRating = r
@@ -144,7 +144,7 @@ object AvalancheLogic {
         for (band in bands) {
             val feature = regionsMap[band.regionID] ?: continue
             val bounds = GeometryUtils.getBounds(feature)
-            val color = AvalancheConfig.DANGER_COLORS[AvalancheConfig.DANGER_LEVEL_VALUES[band.dangerLevel]] ?: "0xFFFFFF"
+            val color = AvalancheConfig.DANGER_COLORS[AvalancheConfig.DANGER_LEVEL_VALUES[band.dangerLevel.lowercase()]] ?: "0xFFFFFF"
             
             val useAspectAndElevation = visualizationMode == VisualizationMode.RISK
             val (ruleMin, ruleMax) = adjustElevationForTreeline(band.minElev, band.maxElev, band.avalancheProblems)

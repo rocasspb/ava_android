@@ -21,7 +21,7 @@ data class RegionFeature(
 @Serializable
 data class RegionProperties(
     @SerialName("id") val id: String,
-    @SerialName("start_date") val startDate: String,
+    @SerialName("start_date") val startDate: String? = null,
     @SerialName("end_date") val endDate: String? = null
 )
 
@@ -35,5 +35,5 @@ data class Geometry(
 data class Region(
     @JsonNames("regionID", "id")
     @SerialName("regionID") val id: String,
-    @SerialName("name") val name: String
+    @SerialName("name") val name: String? = null
 )
