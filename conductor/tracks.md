@@ -9,3 +9,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Switch LiveData to Flows**
 *Link: [./tracks/switch_livedata_to_flows_20260226/](./tracks/switch_livedata_to_flows_20260226/)*
+
+---
+
+- [ ] **Track: KMP Core Migration (Simplified)**
+*Link: [./tracks/kmp_20260510/](./tracks/kmp_20260510/)*
