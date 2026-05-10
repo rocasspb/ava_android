@@ -16,10 +16,11 @@ object AvalancheLogic {
 
         data.forEach { bulletin ->
             var bulletinText = ""
-            if (bulletin.avalancheActivity != null) {
+            val activity = bulletin.avalancheActivity
+            if (activity != null) {
                 val parts = mutableListOf<String>()
-                bulletin.avalancheActivity.highlights?.let { parts.add(it) }
-                bulletin.avalancheActivity.comment?.let { parts.add(it) }
+                activity.highlights?.let { parts.add(it) }
+                activity.comment?.let { parts.add(it) }
                 bulletinText = parts.joinToString("\n\n")
             }
 
