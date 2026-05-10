@@ -8,11 +8,11 @@ This plan outlines the migration of core data models and business logic to a Kot
 - [x] Task: Verify shared module build for both targets.
 - [x] Task: Conductor - User Manual Verification 'Shared Module Infrastructure' (Protocol in workflow.md)
 
-## Phase 2: Data Model Migration
-- [~] Task: Migrate `AvalancheData`, `Region`, `GpxData`, and related constants to `commonMain`.
-- [ ] Task: Update Android application code to use the new shared models.
-- [ ] Task: Write tests in `commonTest` to verify model serialization/deserialization if applicable.
-- [ ] Task: Conductor - User Manual Verification 'Data Model Migration' (Protocol in workflow.md)
+## Phase 2: Data Model Migration [checkpoint: 1e8ae77]
+- [x] Task: Migrate `AvalancheData`, `Region`, `GpxData`, and related constants to `commonMain`.
+- [x] Task: Update Android application code to use the new shared models.
+- [x] Task: Write tests in `commonTest` to verify model serialization/deserialization if applicable.
+- [x] Task: Conductor - User Manual Verification 'Data Model Migration' (Protocol in workflow.md)
 
 ## Phase 3: Logic Refactoring (Decoupling Bitmap)
 - [ ] Task: Refactor `RasterGenerator` to remove dependency on `android.graphics.Bitmap`.
