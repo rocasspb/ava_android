@@ -24,7 +24,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapboxMap
-import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap as MapboxMapCompose
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState

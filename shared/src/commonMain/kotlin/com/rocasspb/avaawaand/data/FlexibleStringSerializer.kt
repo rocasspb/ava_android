@@ -1,5 +1,6 @@
 package com.rocasspb.avaawaand.data
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -22,6 +23,7 @@ object FlexibleStringSerializer : KSerializer<String?> {
         return element.contentOrNull
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun serialize(encoder: Encoder, value: String?) {
         if (value == null) {
             encoder.encodeNull()

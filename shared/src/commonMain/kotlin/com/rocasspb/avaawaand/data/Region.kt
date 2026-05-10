@@ -1,5 +1,6 @@
 package com.rocasspb.avaawaand.data
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -31,6 +32,7 @@ data class Geometry(
     @SerialName("coordinates") val coordinates: List<List<List<List<Double>>>>
 )
 
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class Region(
     @JsonNames("regionID", "id")
