@@ -120,6 +120,20 @@ export function processRegionElevations(data: CaamlData): ElevationBand[] {
 }
 
 /**
+ * Normalizes GeoJSON geometry to MultiPolygon format for KMP compatibility.
+ */
+function normalizeGeometry(geometry: any) {
+    if (!geometry) return null;
+    if (geometry.type === 'Polygon') {
+        return {
+            type: 'MultiPolygon',
+            coordinates: [geometry.coordinates]
+        };
+    }
+    return geometry;
+}
+
+/**
  * Creates a list of GenerationRules from CAAML data and regions GeoJSON.
  */
 export function createGenerationRules(
@@ -175,7 +189,7 @@ export function createGenerationRules(
 
         rules.push({
             bounds: regionBounds,
-            geometry: regionFeature.geometry,
+            geometry: normalizeGeometry(regionFeature.geometry),
             minElev: ruleMinElev,
             maxElev: ruleMaxElev,
             minSlope: mode === MODES.BULLETIN ? undefined : 30,
