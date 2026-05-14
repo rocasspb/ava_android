@@ -47,10 +47,11 @@ fun generateRasterWasm(
     
     val result = RasterGenerator.generateRaster(rules, bounds, provider)
     return result?.let {
-        // We can't easily return a large IntArray via JSON efficiently, 
-        // but for now let's see if we can at least return the metadata
-        // Actually, we SHOULD return the IntArray.
-        // In WasmJs, we can return IntArray and it becomes an Int32Array in JS.
-        "SUCCESS:${it.width}:${it.height}"
+        val sb = StringBuilder()
+        sb.append(it.width).append(",").append(it.height)
+        for (pixel in it.pixels) {
+            sb.append(",").append(pixel)
+        }
+        sb.toString()
     } ?: "ERROR"
 }
