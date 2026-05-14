@@ -10,11 +10,9 @@ export interface Point {
  */
 export async function isPointInPolygon(point: [number, number], polygon: number[][][]): Promise<boolean> {
     const wasm = await WasmLoader.getInstance();
-    if (wasm.isPointInPolygonWasm) {
+    if (wasm && wasm.isPointInPolygonWasm) {
         return wasm.isPointInPolygonWasm(point[0], point[1], JSON.stringify(polygon));
     }
-    
-    // Fallback to TS implementation if Wasm not loaded (should not happen if awaited)
     return isPointInPolygonTS(point, polygon);
 }
 
@@ -22,10 +20,18 @@ export async function isPointInPolygon(point: [number, number], polygon: number[
  * Checks if a point is inside a MultiPolygon using KMP Wasm logic.
  */
 export async function isPointInMultiPolygon(point: [number, number], multiPolygon: number[][][][]): Promise<boolean> {
-    // KMP Wasm current bridge only has isPointInPolygonWasm which takes rings (List<List<List<Double>>>)
-    // So we iterate through the polygons in the MultiPolygon.
+    const wasm = await WasmLoader.getInstance();
+    if (wasm && wasm.isPointInPolygonWasm) {
+        for (const polygon of multiPolygon) {
+            if (wasm.isPointInPolygonWasm(point[0], point[1], JSON.stringify(polygon))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     for (const polygon of multiPolygon) {
-        if (await isPointInPolygon(point, polygon)) {
+        if (isPointInPolygonTS(point, polygon)) {
             return true;
         }
     }
@@ -35,7 +41,7 @@ export async function isPointInMultiPolygon(point: [number, number], multiPolygo
 /**
  * TS Implementation as fallback.
  */
-function isPointInPolygonTS(point: [number, number], polygon: number[][][]): boolean {
+export function isPointInPolygonTS(point: [number, number], polygon: number[][][]): boolean {
     const x = point[0];
     const y = point[1];
     let inside = false;
