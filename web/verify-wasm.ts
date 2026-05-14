@@ -14,12 +14,15 @@ async function verify() {
             const rings = [[ [0, 0], [0, 10], [10, 10], [10, 0], [0, 0] ]];
             const result = wasm.isPointInPolygonWasm(5, 5, JSON.stringify(rings));
             console.log('Call isPointInPolygonWasm(5, 5, ...):', result);
-        } else {
-            console.log('FAILURE: isPointInPolygonWasm is NOT exported');
-            // Check nested exports if any
-            if (wasm.exports) {
-                 console.log('Wasm.exports keys:', Object.keys(wasm.exports));
-            }
+        }
+        
+        if (wasm.calculateTerrainMetricsWasm) {
+            console.log('SUCCESS: calculateTerrainMetricsWasm is exported');
+            const elevProvider = (lng: number, lat: number) => {
+                return 2000; // Constant elevation for test
+            };
+            const result = wasm.calculateTerrainMetricsWasm(11.6, 47.2, elevProvider);
+            console.log('Call calculateTerrainMetricsWasm(11.6, 47.2, ...):', result);
         }
     } catch (e) {
         console.error('Verification failed:', e);

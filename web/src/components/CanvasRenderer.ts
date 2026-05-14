@@ -101,9 +101,9 @@ export class CanvasRenderer {
                     if (rule.geometry) {
                         let isInside = false;
                         if (rule.geometry.type === 'Polygon') {
-                            isInside = isPointInPolygon(point, rule.geometry.coordinates);
+                            isInside = await isPointInPolygon(point, rule.geometry.coordinates);
                         } else if (rule.geometry.type === 'MultiPolygon') {
-                            isInside = isPointInMultiPolygon(point, rule.geometry.coordinates);
+                            isInside = await isPointInMultiPolygon(point, rule.geometry.coordinates);
                         }
                         if (!isInside) continue;
                     }
@@ -122,7 +122,7 @@ export class CanvasRenderer {
                             const checkSlope = (rule.minSlope && rule.minSlope > 0) || rule.applySteepnessLogic;
 
                             if (checkAspect || checkSlope) {
-                                const metrics = calculateTerrainMetrics(point, getElevation);
+                                const metrics = await calculateTerrainMetrics(point, getElevation);
                                 if (!metrics) continue;
 
                                 slope = metrics.slope;
