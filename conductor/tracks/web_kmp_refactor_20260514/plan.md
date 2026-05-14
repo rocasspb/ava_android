@@ -17,7 +17,7 @@
 ## Phase 3: Core Logic and Renderer Refactor
 - [x] Task: Adapt web/src/utils/data-processing.ts to transform CAAML data into KMP GenerationRule and ElevationBand objects. 4a9f3d9
 - [x] Task: Implement a bridge for ElevationQuery that allows KMP logic to call the existing TerrainProvider.getElevation in the web app. 6dcf097
-- [ ] Task: Refactor `web/src/components/CanvasRenderer.ts` to replace the nested loops with a call to KMP `RasterGenerator.generateRaster`.
+- [x] Task: Refactor web/src/components/CanvasRenderer.ts to replace the nested loops with a call to KMP RasterGenerator.generateRaster. de25887
 - [ ] Task: Verify that the generated raster correctly displays avalanche danger and custom mode overlays on the map.
 - [ ] Task: Conductor - User Manual Verification 'Core Logic and Renderer Refactor' (Protocol in workflow.md)
 
