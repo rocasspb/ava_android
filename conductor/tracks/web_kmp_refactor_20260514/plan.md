@@ -7,12 +7,12 @@
 - [x] Task: Verify the Wasm module can be successfully initialized and its exports are accessible. 19603b2
 - [x] Task: Conductor - User Manual Verification 'Wasm Artifact Integration' (Protocol in workflow.md) 33fc042
 
-## Phase 2: Geometry and Terrain Utils Refactor
+## Phase 2: Geometry and Terrain Utils Refactor [checkpoint: 2d9a889]
 - [x] Task: Refactor `web/src/utils/geometry.ts` to delegate `isPointInPolygon` and `isPointInMultiPolygon` to KMP `GeometryUtils`. 2fe3cf2
 - [x] Task: Refactor `web/src/utils/geo-utils.ts` to delegate `calculateTerrainMetrics` to KMP `TerrainUtils`. 2fe3cf2
 - [x] Task: Ensure the bridge correctly handles coordinate formats (e.g., `[lng, lat]` vs `Point(x, y)`). 2fe3cf2
 - [x] Task: Verify that point-in-polygon and slope/aspect calculations match previous results via manual spot checks. 2fe3cf2
-- [ ] Task: Conductor - User Manual Verification 'Geometry and Terrain Utils Refactor' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Geometry and Terrain Utils Refactor' (Protocol in workflow.md) 2d9a889
 
 ## Phase 3: Core Logic and Renderer Refactor
 - [ ] Task: Adapt `web/src/utils/data-processing.ts` to transform CAAML data into KMP `GenerationRule` and `ElevationBand` objects.
