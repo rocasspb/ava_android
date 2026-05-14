@@ -4,9 +4,13 @@ import com.rocasspb.avaawaand.data.Geometry
 import com.rocasspb.avaawaand.data.RegionFeature
 import kotlin.math.*
 
+import kotlinx.serialization.Serializable
+
 object GeometryUtils {
 
+    @Serializable
     data class Point(val x: Double, val y: Double)
+    @Serializable
     data class Bounds(val minLng: Double, val maxLng: Double, val minLat: Double, val maxLat: Double)
 
     /**

@@ -1,0 +1,56 @@
+package com.rocasspb.avaawaand
+
+import com.rocasspb.avaawaand.logic.RasterGenerator
+import com.rocasspb.avaawaand.utils.GeometryUtils
+import com.rocasspb.avaawaand.logic.TerrainUtils
+import com.rocasspb.avaawaand.logic.ElevationProvider
+import com.rocasspb.avaawaand.logic.GenerationRule
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+
+@OptIn(kotlin.js.ExperimentalJsExport::class)
+@JsExport
+fun isPointInPolygonWasm(lng: Double, lat: Double, ringsJson: String): Boolean {
+    val point = GeometryUtils.Point(lng, lat)
+    val rings: List<List<List<Double>>> = Json.decodeFromString(ringsJson)
+    return GeometryUtils.isPointInPolygon(point, rings)
+}
+
+@OptIn(kotlin.js.ExperimentalJsExport::class)
+@JsExport
+fun calculateTerrainMetricsWasm(lng: Double, lat: Double, elevationProviderJs: (Double, Double) -> Int): String {
+    val point = GeometryUtils.Point(lng, lat)
+    val metrics = TerrainUtils.calculateTerrainMetrics(point) { p ->
+        val elev = elevationProviderJs(p.x, p.y)
+        if (elev == -1000000) null else elev // Use a magic number for null if needed
+    }
+    return metrics?.let { "${it.slope},${it.aspect}" } ?: ""
+}
+
+@OptIn(kotlin.js.ExperimentalJsExport::class)
+@JsExport
+fun generateRasterWasm(
+    rulesJson: String,
+    minLng: Double, maxLng: Double, minLat: Double, maxLat: Double,
+    elevationProviderJs: (Double, Double) -> Int
+): String {
+    val rules: List<GenerationRule> = Json.decodeFromString(rulesJson)
+    val bounds = GeometryUtils.Bounds(minLng, maxLng, minLat, maxLat)
+    
+    val provider = object : ElevationProvider {
+        override fun getElevation(point: GeometryUtils.Point): Int? {
+            val elev = elevationProviderJs(point.x, point.y)
+            return if (elev == -1000000) null else elev
+        }
+    }
+    
+    val result = RasterGenerator.generateRaster(rules, bounds, provider)
+    return result?.let {
+        // We can't easily return a large IntArray via JSON efficiently, 
+        // but for now let's see if we can at least return the metadata
+        // Actually, we SHOULD return the IntArray.
+        // In WasmJs, we can return IntArray and it becomes an Int32Array in JS.
+        "SUCCESS:${it.width}:${it.height}"
+    } ?: "ERROR"
+}

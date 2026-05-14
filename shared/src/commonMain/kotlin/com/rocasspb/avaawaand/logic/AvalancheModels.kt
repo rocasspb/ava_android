@@ -4,6 +4,9 @@ import com.rocasspb.avaawaand.data.AvalancheProblem
 import com.rocasspb.avaawaand.data.Geometry
 import com.rocasspb.avaawaand.utils.GeometryUtils
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class GenerationRule(
     val bounds: GeometryUtils.Bounds,
     val geometry: Geometry?,
@@ -16,6 +19,7 @@ data class GenerationRule(
     val properties: RuleProperties
 )
 
+@Serializable
 data class RuleProperties(
     val regionId: String? = null,
     val dangerLevel: String? = null,

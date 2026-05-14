@@ -36,6 +36,56 @@ export async function instantiate(imports={}, runInitializer=true) {
              },
         'kotlin.wasm.internal.externrefToString' : (ref) => String(ref),
         'kotlin.wasm.internal.externrefEquals' : (lhs, rhs) => lhs === rhs,
+        'kotlin.wasm.internal.externrefHashCode' : 
+        (() => {
+        const dataView = new DataView(new ArrayBuffer(8));
+        function numberHashCode(obj) {
+            if ((obj | 0) === obj) {
+                return obj | 0;
+            } else {
+                dataView.setFloat64(0, obj, true);
+                return (dataView.getInt32(0, true) * 31 | 0) + dataView.getInt32(4, true) | 0;
+            }
+        }
+        
+        const hashCodes = new WeakMap();
+        function getObjectHashCode(obj) {
+            const res = hashCodes.get(obj);
+            if (res === undefined) {
+                const POW_2_32 = 4294967296;
+                const hash = (Math.random() * POW_2_32) | 0;
+                hashCodes.set(obj, hash);
+                return hash;
+            }
+            return res;
+        }
+        
+        function getStringHashCode(str) {
+            var hash = 0;
+            for (var i = 0; i < str.length; i++) {
+                var code  = str.charCodeAt(i);
+                hash  = (hash * 31 + code) | 0;
+            }
+            return hash;
+        }
+        
+        return (obj) => {
+            if (obj == null) {
+                return 0;
+            }
+            switch (typeof obj) {
+                case "object":
+                case "function":
+                    return getObjectHashCode(obj);
+                case "number":
+                    return numberHashCode(obj);
+                case "boolean":
+                    return obj ? 1231 : 1237;
+                default:
+                    return getStringHashCode(String(obj)); 
+            }
+        }
+        })(),
         'kotlin.wasm.internal.importStringFromWasm' : (address, length, prefix) => { 
             const mem16 = new Uint16Array(wasmExports.memory.buffer, address, length);
             const str = String.fromCharCode.apply(null, mem16);
@@ -43,6 +93,8 @@ export async function instantiate(imports={}, runInitializer=true) {
              },
         'kotlin.wasm.internal.getJsEmptyString' : () => '',
         'kotlin.wasm.internal.isNullish' : (ref) => ref == null,
+        'kotlin.wasm.internal.getJsTrue' : () => true,
+        'kotlin.wasm.internal.getJsFalse' : () => false,
         'kotlin.wasm.internal.getCachedJsObject_$external_fun' : (p0, p1) => getCachedJsObject(p0, p1),
         'kotlin.js.stackPlaceHolder_js_code' : () => (''),
         'kotlin.js.message_$external_prop_getter' : (_this) => _this.message,
@@ -52,7 +104,9 @@ export async function instantiate(imports={}, runInitializer=true) {
         'kotlin.js.JsError_$external_class_instanceof' : (x) => x instanceof Error,
         'kotlin.random.initialSeed' : () => ((Math.random() * Math.pow(2, 32)) | 0),
         'kotlin.wasm.internal.getJsClassName' : (jsKlass) => jsKlass.name,
-        'kotlin.wasm.internal.getConstructor' : (obj) => obj.constructor
+        'kotlin.wasm.internal.getConstructor' : (obj) => obj.constructor,
+        'com.rocasspb.avaawaand.__callJsClosure_((Double,Double)->Int)' : (f, p0, p1) => f(p0, p1),
+        'com.rocasspb.avaawaand.utils.dateNow' : () => Date.now()
     }
     
     // Placed here to give access to it from externals (js_code)

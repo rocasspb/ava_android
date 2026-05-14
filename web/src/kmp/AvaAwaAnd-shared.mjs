@@ -6,6 +6,9 @@ const exports = (await instantiate({
 })).exports;
 
 export const {
+isPointInPolygonWasm,
+calculateTerrainMetricsWasm,
+generateRasterWasm,
 memory,
 _initialize
 } = exports
