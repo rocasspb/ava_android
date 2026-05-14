@@ -3,8 +3,8 @@
 ## Phase 1: Wasm Artifact Integration
 - [x] Task: Create a dedicated directory for KMP artifacts in the web project (e.g., `web/src/kmp/`). 9195417
 - [x] Task: Copy the generated Wasm/JS files from `shared/build/dist/wasmJs/productionLibrary/` to the new directory. 9195417
-- [~] Task: Implement a Wasm loader utility in `web/src/services/WasmLoader.ts` using dynamic `import()`.
-- [ ] Task: Verify the Wasm module can be successfully initialized and its exports are accessible.
+- [x] Task: Implement a Wasm loader utility in `web/src/services/WasmLoader.ts` using dynamic `import()`. 19603b2
+- [x] Task: Verify the Wasm module can be successfully initialized and its exports are accessible. 19603b2
 - [ ] Task: Conductor - User Manual Verification 'Wasm Artifact Integration' (Protocol in workflow.md)
 
 ## Phase 2: Geometry and Terrain Utils Refactor
