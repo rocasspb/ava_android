@@ -60,10 +60,10 @@ object RasterGenerator {
             (north > it.bounds.minLat && south < it.bounds.maxLat) &&
             (east > it.bounds.minLng && west < it.bounds.maxLng)
         }.sortedBy {
-            it.properties.dangerLevel
+            AvalancheConfig.DANGER_LEVEL_VALUES[it.properties.dangerLevel] ?: 0
         }
 
-        val cellCount = 20
+        val cellCount = 30
         val cellWidthPixels = ceil(width.toDouble() / cellCount).toInt()
         val cellHeightPixels = ceil(height.toDouble() / cellCount).toInt()
 

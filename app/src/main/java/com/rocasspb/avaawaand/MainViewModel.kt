@@ -352,14 +352,7 @@ class MainViewModel(
     }
 
     private fun getDangerNumericValue(dangerLevel: String): Int {
-        return when (dangerLevel.lowercase()) {
-            "low", "1" -> 1
-            "moderate", "2" -> 2
-            "considerable", "3" -> 3
-            "high", "4" -> 4
-            "very_high", "5" -> 5
-            else -> 0
-        }
+        return AvalancheConfig.DANGER_LEVEL_VALUES[dangerLevel] ?: 0
     }
 
     fun clearPointInfo() {
