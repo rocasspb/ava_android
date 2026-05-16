@@ -4,6 +4,7 @@ import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import com.rocasspb.avaawaand.utils.PlatformUtils
 import kotlin.math.ceil
+import kotlin.math.min
 
 interface ElevationProvider {
     fun getElevation(point: GeometryUtils.Point): Int?
@@ -52,8 +53,43 @@ object RasterGenerator {
 
         val highColor = parseHexColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
         val considerableColor = parseHexColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
-        val ruleColors = rules.map { parseHexColor(it.color) }
+        val ruleColors = rules.associateWith { parseHexColor(it.color) }
         var coloredPixels = 0
+
+        val filteredRules = rules.filter {
+            (north > it.bounds.minLat && south < it.bounds.maxLat) &&
+            (east > it.bounds.minLng && west < it.bounds.maxLng)
+        }.sortedBy {
+            it.properties.dangerLevel
+        }
+
+        val cellCount = 20
+        val cellWidthPixels = ceil(width.toDouble() / cellCount).toInt()
+        val cellHeightPixels = ceil(height.toDouble() / cellCount).toInt()
+
+        val rulesPerCell = Array(cellCount) { cy ->
+            Array(cellCount) { cx ->
+                val x = cx * cellWidthPixels
+                val y = cy * cellHeightPixels
+
+                val cellMidLon = west + (x + cellWidthPixels / 2) * gridSpacingDegLon
+                val cellMidLat = north - (y + cellHeightPixels / 2) * gridSpacingDegLat
+                val cellMidPoint = GeometryUtils.Point(cellMidLon, cellMidLat)
+
+                val cellTopLeftLon = west + x * gridSpacingDegLon
+                val cellTopLeftLat = north - y * gridSpacingDegLat
+                val cellTopLeftPoint = GeometryUtils.Point(cellTopLeftLon, cellTopLeftLat)
+
+                val cellBottomRightLon = west + ((cx + 1) * cellWidthPixels + cellWidthPixels / 2) * gridSpacingDegLon //it's okay to intersect with the next cell
+                val cellBottomRightLat = north - ((cy + 1) * cellHeightPixels + cellHeightPixels / 2) * gridSpacingDegLat
+                val cellBottomRightPoint = GeometryUtils.Point(cellBottomRightLon, cellBottomRightLat)
+
+                filteredRules.filter { it.geometry == null
+                        || GeometryUtils.isPointInGeometry(cellMidPoint, it.geometry)
+                        || GeometryUtils.isPointInGeometry(cellTopLeftPoint, it.geometry)
+                        || GeometryUtils.isPointInGeometry(cellBottomRightPoint, it.geometry) }
+            }
+        }
 
         for (y in 0 until height) {
             for (x in 0 until width) {
@@ -64,17 +100,11 @@ object RasterGenerator {
                 val elevation: Int? = getElev(point)
                 var pixelColor = 0x00000000 // Transparent
 
-                for ((index, rule) in rules.withIndex()) {
-                    if (lat < rule.bounds.minLat || lat > rule.bounds.maxLat ||
-                        lng < rule.bounds.minLng || lng > rule.bounds.maxLng
-                    ) continue
-
+                val relevantRules = rulesPerCell[min(y / cellHeightPixels, cellCount - 1)][min(x / cellWidthPixels, cellCount - 1)]
+                for (rule in relevantRules) {
                     if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
                         continue
                     }
-
-                    if(rule.geometry != null && !GeometryUtils.isPointInGeometry(point, rule.geometry))
-                        continue
 
                     val validAspects = rule.validAspects
                     val checkAspect = !validAspects.isNullOrEmpty()
@@ -99,7 +129,7 @@ object RasterGenerator {
                         }
                     }
 
-                    var finalColor = ruleColors[index]
+                    var finalColor = ruleColors[rule] ?: 0x00000000
                     if (rule.applySteepnessLogic && slope != null) {
                         if (slope > 50) continue
 
