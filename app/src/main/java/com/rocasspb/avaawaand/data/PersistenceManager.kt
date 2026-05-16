@@ -1,15 +1,12 @@
 package com.rocasspb.avaawaand.data
 
 import android.content.Context
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import com.rocasspb.avaawaand.utils.AvalancheConfig
 import java.io.File
+import androidx.core.content.edit
 
 class PersistenceManager(context: Context) {
-    private val json = Json { 
-        ignoreUnknownKeys = true 
-        coerceInputValues = true
-    }
+    private val json = AvalancheConfig.json
     private val regionsFile = File(context.filesDir, "regions.json")
     private val avalancheFile = File(context.filesDir, "avalanche.json")
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -19,7 +16,7 @@ class PersistenceManager(context: Context) {
     }
 
     fun setDisclaimerAccepted(accepted: Boolean) {
-        prefs.edit().putBoolean("disclaimer_accepted", accepted).apply()
+        prefs.edit { putBoolean("disclaimer_accepted", accepted) }
     }
 
     fun saveRegions(response: RegionResponse) {

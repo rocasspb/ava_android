@@ -1,6 +1,13 @@
 package com.rocasspb.avaawaand.utils
 
+import kotlinx.serialization.json.Json
+
 object AvalancheConfig {
+    val json = Json {
+        ignoreUnknownKeys = true
+        coerceInputValues = true
+    }
+
     const val DEFAULT_MAX_ELEVATION = 4000
     const val TREELINE_ELEVATION = 1800
     const val GRID_POINTS_DENSITY = 160

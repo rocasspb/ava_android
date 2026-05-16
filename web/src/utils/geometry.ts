@@ -13,7 +13,7 @@ export async function isPointInPolygon(point: [number, number], polygon: number[
     if (wasm && wasm.isPointInPolygonWasm) {
         return wasm.isPointInPolygonWasm(point[0], point[1], JSON.stringify(polygon));
     }
-    return isPointInPolygonTS(point, polygon);
+    return false;
 }
 
 /**
@@ -29,36 +29,7 @@ export async function isPointInMultiPolygon(point: [number, number], multiPolygo
         }
         return false;
     }
-
-    for (const polygon of multiPolygon) {
-        if (isPointInPolygonTS(point, polygon)) {
-            return true;
-        }
-    }
     return false;
-}
-
-/**
- * TS Implementation as fallback.
- */
-export function isPointInPolygonTS(point: [number, number], polygon: number[][][]): boolean {
-    const x = point[0];
-    const y = point[1];
-    let inside = false;
-
-    for (const ring of polygon) {
-        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-            const xi = ring[i][0], yi = ring[i][1];
-            const xj = ring[j][0], yj = ring[j][1];
-
-            const intersect = ((yi > y) !== (yj > y))
-                && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
-
-            if (intersect) inside = !inside;
-        }
-    }
-
-    return inside;
 }
 
 export function getBounds(feature: any) {

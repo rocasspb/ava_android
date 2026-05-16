@@ -1,12 +1,12 @@
 package com.rocasspb.avaawaand.data
 
-import kotlinx.serialization.json.Json
+import com.rocasspb.avaawaand.utils.AvalancheConfig
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DataSerializationTest {
 
-    private val json = Json { ignoreUnknownKeys = true }
+    private val json = AvalancheConfig.json
 
     @Test
     fun testAvalancheResponseSerialization() {
@@ -48,9 +48,30 @@ class DataSerializationTest {
             elevationLoss = 10.0
         )
 
-        val jsonString = Json.encodeToString(GpxTrack.serializer(), track)
-        val decoded = Json.decodeFromString<GpxTrack>(jsonString)
+        val jsonString = json.encodeToString(GpxTrack.serializer(), track)
+        val decoded = json.decodeFromString<GpxTrack>(jsonString)
         
         assertEquals(track, decoded)
+    }
+
+    @Test
+    fun testAvalancheProblemWithUnknownKey() {
+        val jsonString = """
+            {
+                "problemType": "new_snow",
+                "frequency": "few",
+                "avalancheSize": 1,
+                "customData": {
+                    "ALBINA": {
+                        "avalancheProbability": "low"
+                    }
+                }
+            }
+        """.trimIndent()
+
+        val problem = json.decodeFromString<AvalancheProblem>(jsonString)
+        assertEquals("new_snow", problem.problemType)
+        assertEquals("few", problem.frequency)
+        assertEquals(1, problem.avalancheSize)
     }
 }

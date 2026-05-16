@@ -12,5 +12,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Refactor web app to reuse KMP shared logic via Wasm/JS artifacts.**
+- [~] **Track: Refactor web app to reuse KMP shared logic via Wasm/JS artifacts.**
 *Link: [./tracks/web_kmp_refactor_20260514/](./tracks/web_kmp_refactor_20260514/)*
