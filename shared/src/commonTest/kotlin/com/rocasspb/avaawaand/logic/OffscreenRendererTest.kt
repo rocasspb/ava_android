@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 class OffscreenRendererTest {
     @Test
     fun testDrawPolygonBitmask() {
-        val renderer = KorimRenderer()
+        val renderer = ColorBufferRenderer()
         renderer.init(10, 10)
         
         // Draw a square from (2,2) to (5,5) with bitmask 1
@@ -32,7 +32,7 @@ class OffscreenRendererTest {
 
     @Test
     fun testDrawTriangle() {
-        val renderer = KorimRenderer()
+        val renderer = ColorBufferRenderer()
         renderer.init(10, 10)
         
         // Triangle: (1,1), (8,1), (4,8)

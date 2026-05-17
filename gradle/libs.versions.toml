@@ -16,7 +16,6 @@ retrofit = "3.0.0"
 gson = "2.13.2"
 robolectric = "4.16.1"
 composeBom = "2026.01.01"
-korlibs = "6.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -53,7 +52,6 @@ androidx-compose-material-icons-core = { group = "androidx.compose.material", na
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-korlibs-korim = { group = "com.soywiz", name = "korlibs-image", version.ref = "korlibs" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

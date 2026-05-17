@@ -66,7 +66,7 @@ object RasterGenerator {
         val ruleChunks = filteredRules.chunked(32)
 
         for (chunk in ruleChunks) {
-            val renderer: OffscreenRenderer = KorimRenderer()
+            val renderer: OffscreenRenderer = ColorBufferRenderer()
             renderer.init(width, height)
 
             val ruleToBitmask = chunk.withIndex().associate { it.value to (1 shl it.index) }

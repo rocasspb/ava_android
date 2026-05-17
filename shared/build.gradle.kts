@@ -21,7 +21,6 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.json)
-            implementation(libs.korlibs.korim)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))

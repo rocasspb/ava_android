@@ -1,6 +1,6 @@
 package com.rocasspb.avaawaand.logic
 
-class KorimRenderer : OffscreenRenderer {
+class ColorBufferRenderer : OffscreenRenderer {
     private var pixels: IntArray = IntArray(0)
     private var width: Int = 0
     private var height: Int = 0
