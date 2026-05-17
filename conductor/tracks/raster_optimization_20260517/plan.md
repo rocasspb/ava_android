@@ -16,7 +16,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Create Offscreen Rendering Abstraction' (Protocol in workflow.md) 8736ee3
 
 ## Phase 3: Integrate Offscreen Rendering into RasterGenerator
-- [ ] Task: Refactor RasterGenerator (TDD Red Phase)
+- [x] Task: Refactor RasterGenerator (TDD Red Phase) 20eff31
     - [ ] Update/add unit tests for `RasterGenerator` to assert that overlapping rules produce the expected output.
 - [ ] Task: Refactor RasterGenerator (TDD Green Phase)
     - [ ] Modify `RasterGenerator.generateRaster` to instantiate the `OffscreenRenderer`.
