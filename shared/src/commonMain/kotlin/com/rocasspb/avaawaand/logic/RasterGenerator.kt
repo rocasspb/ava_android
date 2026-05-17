@@ -63,33 +63,49 @@ object RasterGenerator {
             AvalancheConfig.DANGER_LEVEL_VALUES[it.properties.dangerLevel] ?: 0
         }
 
-        val cellCount = 30
-        val cellWidthPixels = ceil(width.toDouble() / cellCount).toInt()
-        val cellHeightPixels = ceil(height.toDouble() / cellCount).toInt()
+        val renderer: OffscreenRenderer = KorimRenderer()
+        renderer.init(width, height)
 
-        val rulesPerCell = Array(cellCount) { cy ->
-            Array(cellCount) { cx ->
-                val x = cx * cellWidthPixels
-                val y = cy * cellHeightPixels
+        val rulesToProcess = filteredRules.take(32)
+        val ruleToBitmask = rulesToProcess.withIndex().associate { it.value to (1 shl it.index) }
 
-                val cellMidLon = west + (x + cellWidthPixels / 2) * gridSpacingDegLon
-                val cellMidLat = north - (y + cellHeightPixels / 2) * gridSpacingDegLat
-                val cellMidPoint = GeometryUtils.Point(cellMidLon, cellMidLat)
+        for ((rule, bitmask) in ruleToBitmask) {
+            val geometry = rule.geometry
+            if (geometry != null) {
+                val polygons = when (geometry.type) {
+                    "Polygon" -> geometry.coordinates
+                    "MultiPolygon" -> geometry.coordinates
+                    else -> emptyList()
+                }
+                for (polygon in polygons) {
+                    for (ring in polygon) {
+                        if (ring.isEmpty()) continue
+                        val pixelPoints = ring.map { coord ->
+                            val px = ((coord[0] - west) / lngRange * width).toFloat()
+                            val py = ((north - coord[1]) / latRange * height).toFloat()
+                            px to py
+                        }
+                        renderer.drawPolygon(pixelPoints, bitmask)
+                    }
+                }
+            } else {
+                val startX = (((rule.bounds.minLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
+                val endX = (((rule.bounds.maxLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
+                val startY = (((north - rule.bounds.maxLat) / latRange * height).toInt()).coerceIn(0, height - 1)
+                val endY = (((north - rule.bounds.minLat) / latRange * height).toInt()).coerceIn(0, height - 1)
 
-                val cellTopLeftLon = west + x * gridSpacingDegLon
-                val cellTopLeftLat = north - y * gridSpacingDegLat
-                val cellTopLeftPoint = GeometryUtils.Point(cellTopLeftLon, cellTopLeftLat)
-
-                val cellBottomRightLon = west + ((cx + 1) * cellWidthPixels + cellWidthPixels / 2) * gridSpacingDegLon //it's okay to intersect with the next cell
-                val cellBottomRightLat = north - ((cy + 1) * cellHeightPixels + cellHeightPixels / 2) * gridSpacingDegLat
-                val cellBottomRightPoint = GeometryUtils.Point(cellBottomRightLon, cellBottomRightLat)
-
-                filteredRules.filter { it.geometry == null
-                        || GeometryUtils.isPointInGeometry(cellMidPoint, it.geometry)
-                        || GeometryUtils.isPointInGeometry(cellTopLeftPoint, it.geometry)
-                        || GeometryUtils.isPointInGeometry(cellBottomRightPoint, it.geometry) }
+                renderer.drawPolygon(
+                    listOf(
+                        startX.toFloat() to startY.toFloat(),
+                        (endX + 1).toFloat() to startY.toFloat(),
+                        (endX + 1).toFloat() to (endY + 1).toFloat(),
+                        startX.toFloat() to (endY + 1).toFloat()
+                    ), bitmask
+                )
             }
         }
+
+        val bitmaskBuffer = renderer.getPixels()
 
         for (y in 0 until height) {
             for (x in 0 until width) {
@@ -100,58 +116,65 @@ object RasterGenerator {
                 val elevation: Int? = getElev(point)
                 var pixelColor = 0x00000000 // Transparent
 
-                val relevantRules = rulesPerCell[min(y / cellHeightPixels, cellCount - 1)][min(x / cellWidthPixels, cellCount - 1)]
-                for (rule in relevantRules) {
-                    if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
-                        continue
-                    }
-
-                    val validAspects = rule.validAspects
-                    val checkAspect = !validAspects.isNullOrEmpty()
-                    val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
-                    val dlValue = getDangerValue(rule.properties.dangerLevel)
-                    var effectiveDlValue = dlValue
-                    var slope: Double? = null
-
-                    if (checkAspect || checkSlope) {
-                        val metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
-                        if (metrics != null) {
-                            slope = metrics.slope
-                            if (checkSlope && rule.minSlope != null && slope < rule.minSlope) {
+                val pixelBitmask = bitmaskBuffer[y * width + x]
+                if (pixelBitmask != 0) {
+                    for (i in rulesToProcess.indices) {
+                        val bit = 1 shl i
+                        if (pixelBitmask and bit != 0) {
+                            val rule = rulesToProcess[i]
+                            if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
                                 continue
                             }
-                            if (checkAspect && !validAspects.contains(metrics.aspect)) {
-                                if (dlValue <= 1) continue
-                                else effectiveDlValue--
+
+                            val validAspects = rule.validAspects
+                            val checkAspect = !validAspects.isNullOrEmpty()
+                            val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
+                            val dlValue = getDangerValue(rule.properties.dangerLevel)
+                            var effectiveDlValue = dlValue
+                            var slope: Double? = null
+
+                            if (checkAspect || checkSlope) {
+                                val metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
+                                if (metrics != null) {
+                                    slope = metrics.slope
+                                    if (checkSlope && rule.minSlope != null && slope < rule.minSlope) {
+                                        continue
+                                    }
+                                    if (checkAspect && !validAspects.contains(metrics.aspect)) {
+                                        if (dlValue <= 1) continue
+                                        else effectiveDlValue--
+                                    }
+                                } else {
+                                    continue
+                                }
                             }
-                        } else {
-                            continue
+
+                            var finalColor = ruleColors[rule] ?: 0x00000000
+                            if (rule.applySteepnessLogic && slope != null) {
+                                if (slope > 50) continue
+
+                                var matched = true
+                                if (effectiveDlValue >= 4) {
+                                    finalColor = if (slope >= 30) highColor else considerableColor
+                                } else if (effectiveDlValue == 3) {
+                                    if (slope >= 35) finalColor = highColor
+                                    else if (slope >= 30) finalColor = considerableColor
+                                    else matched = false
+                                } else if (effectiveDlValue == 2) {
+                                    if (slope >= 40) finalColor = highColor
+                                    else if (slope >= 35) finalColor = considerableColor
+                                    else matched = false
+                                } else if (effectiveDlValue == 1) {
+                                    if (slope >= 40) finalColor = considerableColor
+                                    else matched = false
+                                }
+                                if (!matched) continue
+                            }
+                            pixelColor = finalColor
                         }
                     }
-
-                    var finalColor = ruleColors[rule] ?: 0x00000000
-                    if (rule.applySteepnessLogic && slope != null) {
-                        if (slope > 50) continue
-
-                        var matched = true
-                        if (effectiveDlValue >= 4) {
-                            finalColor = if (slope >= 30) highColor else considerableColor
-                        } else if (effectiveDlValue == 3) {
-                            if (slope >= 35) finalColor = highColor
-                            else if (slope >= 30) finalColor = considerableColor
-                            else matched = false
-                        } else if (effectiveDlValue == 2) {
-                            if (slope >= 40) finalColor = highColor
-                            else if (slope >= 35) finalColor = considerableColor
-                            else matched = false
-                        } else if (effectiveDlValue == 1) {
-                            if (slope >= 40) finalColor = considerableColor
-                            else matched = false
-                        }
-                        if (!matched) continue
-                    }
-                    pixelColor = finalColor
                 }
+                
                 if (pixelColor != 0x00000000) {
                     coloredPixels++
                 }
