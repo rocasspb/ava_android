@@ -54,7 +54,7 @@ object RasterGenerator {
         val highColor = parseHexColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
         val considerableColor = parseHexColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
         val ruleColors = rules.associateWith { parseHexColor(it.color) }
-        var coloredPixels = 0
+        var coloredPixelsTotal = 0
 
         val filteredRules = rules.filter {
             (north > it.bounds.minLat && south < it.bounds.maxLat) &&
@@ -63,65 +63,68 @@ object RasterGenerator {
             AvalancheConfig.DANGER_LEVEL_VALUES[it.properties.dangerLevel] ?: 0
         }
 
-        val renderer: OffscreenRenderer = KorimRenderer()
-        renderer.init(width, height)
+        val ruleChunks = filteredRules.chunked(32)
 
-        val rulesToProcess = filteredRules.take(32)
-        val ruleToBitmask = rulesToProcess.withIndex().associate { it.value to (1 shl it.index) }
+        for (chunk in ruleChunks) {
+            val renderer: OffscreenRenderer = KorimRenderer()
+            renderer.init(width, height)
 
-        for ((rule, bitmask) in ruleToBitmask) {
-            val geometry = rule.geometry
-            if (geometry != null) {
-                val polygons = when (geometry.type) {
-                    "Polygon" -> geometry.coordinates
-                    "MultiPolygon" -> geometry.coordinates
-                    else -> emptyList()
-                }
-                for (polygon in polygons) {
-                    for (ring in polygon) {
-                        if (ring.isEmpty()) continue
-                        val pixelPoints = ring.map { coord ->
-                            val px = ((coord[0] - west) / lngRange * width).toFloat()
-                            val py = ((north - coord[1]) / latRange * height).toFloat()
-                            px to py
-                        }
-                        renderer.drawPolygon(pixelPoints, bitmask)
+            val ruleToBitmask = chunk.withIndex().associate { it.value to (1 shl it.index) }
+
+            for ((rule, bitmask) in ruleToBitmask) {
+                val geometry = rule.geometry
+                if (geometry != null) {
+                    val polygons = when (geometry.type) {
+                        "Polygon" -> geometry.coordinates
+                        "MultiPolygon" -> geometry.coordinates
+                        else -> emptyList()
                     }
+                    for (polygon in polygons) {
+                        for (ring in polygon) {
+                            if (ring.isEmpty()) continue
+                            val pixelPoints = ring.map { coord ->
+                                val px = ((coord[0] - west) / lngRange * width).toFloat()
+                                val py = ((north - coord[1]) / latRange * height).toFloat()
+                                px to py
+                            }
+                            renderer.drawPolygon(pixelPoints, bitmask)
+                        }
+                    }
+                } else {
+                    val startX = (((rule.bounds.minLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
+                    val endX = (((rule.bounds.maxLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
+                    val startY = (((north - rule.bounds.maxLat) / latRange * height).toInt()).coerceIn(0, height - 1)
+                    val endY = (((north - rule.bounds.minLat) / latRange * height).toInt()).coerceIn(0, height - 1)
+
+                    renderer.drawPolygon(
+                        listOf(
+                            startX.toFloat() to startY.toFloat(),
+                            (endX + 1).toFloat() to startY.toFloat(),
+                            (endX + 1).toFloat() to (endY + 1).toFloat(),
+                            startX.toFloat() to (endY + 1).toFloat()
+                        ), bitmask
+                    )
                 }
-            } else {
-                val startX = (((rule.bounds.minLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
-                val endX = (((rule.bounds.maxLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
-                val startY = (((north - rule.bounds.maxLat) / latRange * height).toInt()).coerceIn(0, height - 1)
-                val endY = (((north - rule.bounds.minLat) / latRange * height).toInt()).coerceIn(0, height - 1)
-
-                renderer.drawPolygon(
-                    listOf(
-                        startX.toFloat() to startY.toFloat(),
-                        (endX + 1).toFloat() to startY.toFloat(),
-                        (endX + 1).toFloat() to (endY + 1).toFloat(),
-                        startX.toFloat() to (endY + 1).toFloat()
-                    ), bitmask
-                )
             }
-        }
 
-        val bitmaskBuffer = renderer.getPixels()
+            val bitmaskBuffer = renderer.getPixels()
 
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val lng = west + (x + 0.5) * gridSpacingDegLon
-                val lat = north - (y + 0.5) * gridSpacingDegLat
-                val point = GeometryUtils.Point(lng, lat)
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val pixelBitmask = bitmaskBuffer[y * width + x]
+                    if (pixelBitmask == 0) continue
 
-                val elevation: Int? = getElev(point)
-                var pixelColor = 0x00000000 // Transparent
+                    val lng = west + (x + 0.5) * gridSpacingDegLon
+                    val lat = north - (y + 0.5) * gridSpacingDegLat
+                    val point = GeometryUtils.Point(lng, lat)
+                    val elevation: Int? = getElev(point)
 
-                val pixelBitmask = bitmaskBuffer[y * width + x]
-                if (pixelBitmask != 0) {
-                    for (i in rulesToProcess.indices) {
+                    var chunkPixelColor: Int? = null
+
+                    for (i in chunk.indices) {
                         val bit = 1 shl i
                         if (pixelBitmask and bit != 0) {
-                            val rule = rulesToProcess[i]
+                            val rule = chunk[i]
                             if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
                                 continue
                             }
@@ -170,17 +173,18 @@ object RasterGenerator {
                                 }
                                 if (!matched) continue
                             }
-                            pixelColor = finalColor
+                            chunkPixelColor = finalColor
                         }
                     }
+                    if (chunkPixelColor != null) {
+                        pixels[y * width + x] = chunkPixelColor
+                    }
                 }
-                
-                if (pixelColor != 0x00000000) {
-                    coloredPixels++
-                }
-                pixels[y * width + x] = pixelColor
             }
         }
+
+        var coloredPixels = 0
+        for (p in pixels) if (p != 0) coloredPixels++
 
         val duration = PlatformUtils.currentTimeMillis() - startTime
         logger?.d(TAG, "generateRaster complete. Colored pixels: $coloredPixels / ${width * height}. Rules: ${rules.size}")
