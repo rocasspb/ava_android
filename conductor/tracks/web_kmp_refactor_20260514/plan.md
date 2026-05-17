@@ -24,5 +24,5 @@
 ## Phase 4: Cleanup and Finalization
 - [x] Task: Remove redundant TypeScript implementations from `web/src/utils/` if no longer used. a2b78db
 - [x] Task: Perform a final pass on code style, ensuring all public Wasm-bridging functions are well-documented. 3be99b6
-- [~] Task: Conduct a full end-to-end verification of all application features (Bulletin, Risk, Custom, Point Info).
-- [ ] Task: Conductor - User Manual Verification 'Cleanup and Finalization' (Protocol in workflow.md)
+- [x] Task: Conduct a full end-to-end verification of all application features (Bulletin, Risk, Custom, Point Info). 67732e6
+- [~] Task: Conductor - User Manual Verification 'Cleanup and Finalization' (Protocol in workflow.md)
