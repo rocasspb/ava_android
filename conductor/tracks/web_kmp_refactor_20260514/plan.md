@@ -14,12 +14,12 @@
 - [x] Task: Verify that point-in-polygon and slope/aspect calculations match previous results via manual spot checks. 2fe3cf2
 - [x] Task: Conductor - User Manual Verification 'Geometry and Terrain Utils Refactor' (Protocol in workflow.md) 2d9a889
 
-## Phase 3: Core Logic and Renderer Refactor
+## Phase 3: Core Logic and Renderer Refactor [checkpoint: 20676d5]
 - [x] Task: Adapt web/src/utils/data-processing.ts to transform CAAML data into KMP GenerationRule and ElevationBand objects. 4a9f3d9
 - [x] Task: Implement a bridge for ElevationQuery that allows KMP logic to call the existing TerrainProvider.getElevation in the web app. 6dcf097
 - [x] Task: Refactor web/src/components/CanvasRenderer.ts to replace the nested loops with a call to KMP RasterGenerator.generateRaster. de25887
 - [x] Task: Verify that the generated raster correctly displays avalanche danger and custom mode overlays on the map. fc853d6
-- [ ] Task: Conductor - User Manual Verification 'Core Logic and Renderer Refactor' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Core Logic and Renderer Refactor' (Protocol in workflow.md) 20676d5
 
 ## Phase 4: Cleanup and Finalization
 - [ ] Task: Remove redundant TypeScript implementations from `web/src/utils/` if no longer used.
