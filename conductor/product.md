@@ -24,7 +24,7 @@ Freeriders, backcountry skiers and snowboarders, planning their routes according
 - Intelligent Mode Switching: Automatically transitions between regional (Bulletin) and granular (Risk) views based on zoom level.
 
 ## Data & Sync
-- Current data update and synchronization logic is functional and meets requirements.
+- Highly optimized rasterization process using a color buffer approach ensures smooth real-time visualization of complex terrain data.
 
 ## Design Principles
 - Map-Centric: Large, immersive map view with non-intrusive UI overlays.
