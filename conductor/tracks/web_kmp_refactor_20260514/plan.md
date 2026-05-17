@@ -21,8 +21,8 @@
 - [x] Task: Verify that the generated raster correctly displays avalanche danger and custom mode overlays on the map. fc853d6
 - [x] Task: Conductor - User Manual Verification 'Core Logic and Renderer Refactor' (Protocol in workflow.md) 20676d5
 
-## Phase 4: Cleanup and Finalization
+## Phase 4: Cleanup and Finalization [checkpoint: 5da5fe0]
 - [x] Task: Remove redundant TypeScript implementations from `web/src/utils/` if no longer used. a2b78db
 - [x] Task: Perform a final pass on code style, ensuring all public Wasm-bridging functions are well-documented. 3be99b6
 - [x] Task: Conduct a full end-to-end verification of all application features (Bulletin, Risk, Custom, Point Info). 67732e6
-- [~] Task: Conductor - User Manual Verification 'Cleanup and Finalization' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Cleanup and Finalization' (Protocol in workflow.md) 5da5fe0
