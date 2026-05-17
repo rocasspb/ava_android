@@ -15,7 +15,7 @@
     - [ ] Write unit tests for `OffscreenRenderer` to ensure polygons are drawn correctly and colors (bitmasks) accumulate properly via bitwise OR blending.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Create Offscreen Rendering Abstraction' (Protocol in workflow.md) 8736ee3
 
-## Phase 3: Integrate Offscreen Rendering into RasterGenerator
+## Phase 3: Integrate Offscreen Rendering into RasterGenerator [checkpoint: f746dc8]
 - [x] Task: Refactor RasterGenerator (TDD Red Phase) 20eff31
     - [ ] Update/add unit tests for `RasterGenerator` to assert that overlapping rules produce the expected output.
 - [x] Task: Refactor RasterGenerator (TDD Green Phase) fff9814
@@ -27,7 +27,7 @@
     - [ ] Apply elevation, slope, and aspect logic (existing logic) to determine the final pixel color.
 - [x] Task: Fallback Implementation 05b328c
     - [ ] Implement chunking or multiple passes if `filteredRules.size > 32`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Integrate Offscreen Rendering into RasterGenerator' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Integrate Offscreen Rendering into RasterGenerator' (Protocol in workflow.md) f746dc8
 
 ## Phase 4: Final Testing and Cleanup
 - [ ] Task: Run full test suite
