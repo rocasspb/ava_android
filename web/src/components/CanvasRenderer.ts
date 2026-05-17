@@ -79,15 +79,13 @@ export class CanvasRenderer {
 
         ctx.putImageData(imgData, 0, 0);
 
-        const gridSpacingDeg = Math.max(latRange, lngRange) / config.GRID_POINTS_DENSITY;
-
-        // Return coordinates that match the generated grid
+        // Return coordinates that match the map bounds
         return {
             coordinates: [
                 [west, north],
-                [west + width * gridSpacingDeg, north],
-                [west + width * gridSpacingDeg, north - height * gridSpacingDeg],
-                [west, north - height * gridSpacingDeg]
+                [east, north],
+                [east, south],
+                [west, south]
             ]
         };
     }
