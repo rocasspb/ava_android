@@ -9,8 +9,3 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Switch LiveData to Flows**
 *Link: [./tracks/switch_livedata_to_flows_20260226/](./tracks/switch_livedata_to_flows_20260226/)*
-
----
-
-- [x] **Track: Optimize RasterGenerator with Color Buffer approach**
-*Link: [./tracks/raster_optimization_20260517/](./tracks/raster_optimization_20260517/)*

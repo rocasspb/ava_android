@@ -1,0 +1,8 @@
+{
+  "track_id": "raster_optimization_20260517",
+  "type": "refactor",
+  "status": "new",
+  "created_at": "2026-05-17T00:00:00Z",
+  "updated_at": "2026-05-17T00:00:00Z",
+  "description": "Optimize RasterGenerator. Right now it checks isPointInGeometry often, which is a heavy operation. I propose switching to a Color Buffer approach for the rules. Please note that such can intersect, so color coding should account for that"
+}
