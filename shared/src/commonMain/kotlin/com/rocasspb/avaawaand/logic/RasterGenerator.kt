@@ -4,7 +4,6 @@ import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import com.rocasspb.avaawaand.utils.PlatformUtils
 import kotlin.math.ceil
-import kotlin.math.min
 
 interface ElevationProvider {
     fun getElevation(point: GeometryUtils.Point): Int?
@@ -54,7 +53,6 @@ object RasterGenerator {
         val highColor = parseHexColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
         val considerableColor = parseHexColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
         val ruleColors = rules.associateWith { parseHexColor(it.color) }
-        var coloredPixelsTotal = 0
 
         val filteredRules = rules.filter {
             (north > it.bounds.minLat && south < it.bounds.maxLat) &&
@@ -66,6 +64,7 @@ object RasterGenerator {
         val ruleChunks = filteredRules.chunked(32)
 
         for (chunk in ruleChunks) {
+            val bitmaskStartTime = PlatformUtils.currentTimeMillis()
             val renderer: OffscreenRenderer = ColorBufferRenderer()
             renderer.init(width, height)
 
@@ -108,6 +107,7 @@ object RasterGenerator {
             }
 
             val bitmaskBuffer = renderer.getPixels()
+            logger?.d(TAG, "generateRaster bitmask drawing complete.: took ${PlatformUtils.currentTimeMillis() - bitmaskStartTime}ms")
 
             for (y in 0 until height) {
                 for (x in 0 until width) {
@@ -183,12 +183,7 @@ object RasterGenerator {
             }
         }
 
-        var coloredPixels = 0
-        for (p in pixels) if (p != 0) coloredPixels++
-
-        val duration = PlatformUtils.currentTimeMillis() - startTime
-        logger?.d(TAG, "generateRaster complete. Colored pixels: $coloredPixels / ${width * height}. Rules: ${rules.size}")
-        updateStats(duration, logger)
+        updateStats(PlatformUtils.currentTimeMillis() - startTime, logger)
         
         return RasterData(width, height, pixels)
     }
