@@ -1,7 +1,5 @@
 package com.rocasspb.avaawaand.logic
 
-import korlibs.image.bitmap.Bitmap32
-
 class KorimRenderer : OffscreenRenderer {
     private var pixels: IntArray = IntArray(0)
     private var width: Int = 0
