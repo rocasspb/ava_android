@@ -18,7 +18,7 @@
 ## Phase 3: Integrate Offscreen Rendering into RasterGenerator
 - [x] Task: Refactor RasterGenerator (TDD Red Phase) 20eff31
     - [ ] Update/add unit tests for `RasterGenerator` to assert that overlapping rules produce the expected output.
-- [ ] Task: Refactor RasterGenerator (TDD Green Phase)
+- [x] Task: Refactor RasterGenerator (TDD Green Phase) fff9814
     - [ ] Modify `RasterGenerator.generateRaster` to instantiate the `OffscreenRenderer`.
     - [ ] Assign unique bits to each rule up to 32 rules.
     - [ ] Draw all `filteredRules` geometries into the offscreen buffer using their assigned bitmask colors.
