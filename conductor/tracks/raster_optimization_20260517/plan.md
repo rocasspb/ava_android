@@ -29,11 +29,11 @@
     - [ ] Implement chunking or multiple passes if `filteredRules.size > 32`.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Integrate Offscreen Rendering into RasterGenerator' (Protocol in workflow.md) f746dc8
 
-## Phase 4: Final Testing and Cleanup
-- [ ] Task: Run full test suite
+## Phase 4: Final Testing and Cleanup [checkpoint: c124cc6]
+- [x] Task: Run full test suite 12794c7
     - [ ] Ensure all unit and UI tests pass.
-- [ ] Task: Performance benchmarking
+- [x] Task: Performance benchmarking 12794c7
     - [ ] Verify logs indicate a significant reduction in `generateRaster` execution time.
-- [ ] Task: Clean up dead code
+- [x] Task: Clean up dead code 12794c7
     - [ ] Remove any obsolete geometric iteration logic from `RasterGenerator`.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Final Testing and Cleanup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Final Testing and Cleanup' (Protocol in workflow.md) c124cc6
