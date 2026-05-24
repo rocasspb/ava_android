@@ -32,24 +32,27 @@ kotlin {
     }
 }
 
-val webKmpDir = file("${project.rootDir}/web/src/kmp")
+// WASM NPM Package is generated at:
+// shared/build/dist/wasmJs/productionLibrary (for production)
+// shared/build/dist/wasmJs/developmentLibrary (for development)
 
-tasks.register<Copy>("deliverWasmDev") {
-    group = "delivery"
-    description = "Delivers development Wasm build to web folder"
-    from(tasks.named("wasmJsBrowserDevelopmentLibraryDistribution"))
-    into(webKmpDir)
+val isWindows = System.getProperty("os.name").lowercase().contains("win")
+
+tasks.register<Exec>("publishToLocalNpm") {
+    group = "publishing"
+    description = "Publishes the development WASM library to local npm link"
+    dependsOn("wasmJsBrowserDevelopmentLibraryDistribution")
+    
+    val distDir = layout.buildDirectory.dir("dist/wasmJs/developmentLibrary").get().asFile
+    workingDir = distDir
+    commandLine = if (isWindows) listOf("cmd", "/c", "npm link") else listOf("npm", "link")
 }
 
-tasks.register<Copy>("deliverWasmProd") {
-    group = "delivery"
-    description = "Delivers production Wasm build to web folder"
-    from(tasks.named("wasmJsBrowserProductionLibraryDistribution"))
-    into(webKmpDir)
-}
-
-tasks.register("deliverWasm") {
-    group = "delivery"
-    description = "Delivers development Wasm build to web folder (alias for deliverWasmDev)"
-    dependsOn("deliverWasmDev")
+tasks.register<Exec>("linkToWeb") {
+    group = "publishing"
+    description = "Links the published WASM library to the web project"
+    dependsOn("publishToLocalNpm")
+    
+    workingDir = file("${project.rootDir}/web")
+    commandLine = if (isWindows) listOf("cmd", "/c", "npm link AvaAwaAnd-shared") else listOf("npm", "link", "AvaAwaAnd-shared")
 }

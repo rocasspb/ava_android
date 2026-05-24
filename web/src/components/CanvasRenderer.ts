@@ -1,5 +1,4 @@
 import * as maptiler from '@maptiler/sdk';
-import * as config from '../config';
 import type { GenerationRule } from '../types/GenerationRule';
 import { TerrainProvider } from '../services/TerrainProvider';
 import { RasterBridge } from '../services/RasterBridge';
@@ -27,9 +26,6 @@ export class CanvasRenderer {
         const south = bounds.getSouth();
         const east = bounds.getEast();
         const west = bounds.getWest();
-
-        const latRange = north - south;
-        const lngRange = east - west;
 
         try {
             await this.terrainProvider.fetchTiles(

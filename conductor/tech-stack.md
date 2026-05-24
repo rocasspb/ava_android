@@ -13,7 +13,7 @@
 - **Maps (Web):** MapTiler SDK
 - **Asynchronous Work:** Kotlin Coroutines & Lifecycle (ViewModel, StateFlow, SharedFlow)
 - **UI Components:** Material Icons Extended
-- **Web Integration:** Wasm/JS artifacts from KMP for core logic sharing
+- **Web Integration:** Wasm/JS artifacts from KMP shared as a local npm package for core logic sharing
 
 ## Testing
 - **Unit Testing:** JUnit, Robolectric

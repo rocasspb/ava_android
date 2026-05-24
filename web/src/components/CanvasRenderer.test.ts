@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CanvasRenderer } from './CanvasRenderer';
-import { TerrainProvider } from '../services/TerrainProvider';
 import { RasterBridge } from '../services/RasterBridge';
 import * as maptiler from '@maptiler/sdk';
 
