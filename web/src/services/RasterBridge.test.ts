@@ -36,7 +36,7 @@ describe('RasterBridge', () => {
 
     it('should handle elevation provider callback', async () => {
         let capturedCallback: any;
-        const mockGenerateRasterWasm = vi.fn((rules, minLng, maxLng, minLat, maxLat, callback) => {
+        const mockGenerateRasterWasm = vi.fn((_rules, _minLng, _maxLngg, _minLat, _maxLat, callback) => {
             capturedCallback = callback;
             return "1,1,100";
         });

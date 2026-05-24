@@ -32,6 +32,28 @@ kotlin {
     }
 }
 
+val webKmpDir = file("${project.rootDir}/web/src/kmp")
+
+tasks.register<Copy>("deliverWasmDev") {
+    group = "delivery"
+    description = "Delivers development Wasm build to web folder"
+    from(tasks.named("wasmJsBrowserDevelopmentLibraryDistribution"))
+    into(webKmpDir)
+}
+
+tasks.register<Copy>("deliverWasmProd") {
+    group = "delivery"
+    description = "Delivers production Wasm build to web folder"
+    from(tasks.named("wasmJsBrowserProductionLibraryDistribution"))
+    into(webKmpDir)
+}
+
+tasks.register("deliverWasm") {
+    group = "delivery"
+    description = "Delivers development Wasm build to web folder (alias for deliverWasmDev)"
+    dependsOn("deliverWasmDev")
+}
+
 android {
     namespace = "com.rocasspb.avaawaand.shared"
     compileSdk = 36
