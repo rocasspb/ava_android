@@ -28,8 +28,27 @@ at a particular route you are planning.
 - **Networking**: [Retrofit](https://square.github.io/retrofit/) & [Gson](https://github.com/google/gson)
 - **Maps**: [Mapbox Maps SDK for Android](https://www.mapbox.com/android-docs/maps/overview/)
 - **UI Components**: Android Jetpack (ViewModel, LiveData), Material Design
+- **Kotlin Multiplatform (KMP)**: Core logic is shared between platforms (Android, Web/Wasm).
 
 ### Prerequisites
 - Android Studio Giraffe or newer.
 - Mapbox Access Token - get it on the website.
 
+## Kotlin Multiplatform Library
+
+The project contains a `shared` Kotlin Multiplatform (KMP) module that encapsulates common business logic, enabling code sharing across different platforms such as Android and the Web.
+
+### Building Wasm Targets for the Web
+
+The shared library includes a WebAssembly (Wasm) target for running the shared code in web browsers. 
+
+To build the Wasm library target, use the following Gradle commands from the root of the project for Dev and Prod respectively:
+
+```bash
+./gradlew wasmJsBrowserDevelopmentLibraryDistribution
+```
+```bash
+./gradlew wasmJsBrowserProductionLibraryDistribution
+```
+
+Because the `shared` module exposes a `wasmJs` library (`binaries.library()`), these commands will compile the Kotlin code into Wasm libraries which can be consumed by a web frontend or published locally.
