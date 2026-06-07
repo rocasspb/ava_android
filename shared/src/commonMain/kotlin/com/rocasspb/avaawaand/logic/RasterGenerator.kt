@@ -4,7 +4,6 @@ import com.rocasspb.avaawaand.utils.AvalancheConfig
 import com.rocasspb.avaawaand.utils.GeometryUtils
 import com.rocasspb.avaawaand.utils.PlatformUtils
 import kotlin.math.ceil
-import kotlin.math.min
 
 interface ElevationProvider {
     fun getElevation(point: GeometryUtils.Point): Int?
@@ -54,7 +53,6 @@ object RasterGenerator {
         val highColor = parseHexColor(AvalancheConfig.DANGER_COLORS[4] ?: "#FF0000")
         val considerableColor = parseHexColor(AvalancheConfig.DANGER_COLORS[3] ?: "#FF9900")
         val ruleColors = rules.associateWith { parseHexColor(it.color) }
-        var coloredPixels = 0
 
         val filteredRules = rules.filter {
             (north > it.bounds.minLat && south < it.bounds.maxLat) &&
@@ -63,105 +61,129 @@ object RasterGenerator {
             AvalancheConfig.DANGER_LEVEL_VALUES[it.properties.dangerLevel] ?: 0
         }
 
-        val cellCount = 30
-        val cellWidthPixels = ceil(width.toDouble() / cellCount).toInt()
-        val cellHeightPixels = ceil(height.toDouble() / cellCount).toInt()
+        val ruleChunks = filteredRules.chunked(32)
 
-        val rulesPerCell = Array(cellCount) { cy ->
-            Array(cellCount) { cx ->
-                val x = cx * cellWidthPixels
-                val y = cy * cellHeightPixels
+        for (chunk in ruleChunks) {
+            val bitmaskStartTime = PlatformUtils.currentTimeMillis()
+            val renderer: OffscreenRenderer = ColorBufferRenderer()
+            renderer.init(width, height)
 
-                val cellMidLon = west + (x + cellWidthPixels / 2) * gridSpacingDegLon
-                val cellMidLat = north - (y + cellHeightPixels / 2) * gridSpacingDegLat
-                val cellMidPoint = GeometryUtils.Point(cellMidLon, cellMidLat)
+            val ruleToBitmask = chunk.withIndex().associate { it.value to (1 shl it.index) }
 
-                val cellTopLeftLon = west + x * gridSpacingDegLon
-                val cellTopLeftLat = north - y * gridSpacingDegLat
-                val cellTopLeftPoint = GeometryUtils.Point(cellTopLeftLon, cellTopLeftLat)
-
-                val cellBottomRightLon = west + ((cx + 1) * cellWidthPixels + cellWidthPixels / 2) * gridSpacingDegLon //it's okay to intersect with the next cell
-                val cellBottomRightLat = north - ((cy + 1) * cellHeightPixels + cellHeightPixels / 2) * gridSpacingDegLat
-                val cellBottomRightPoint = GeometryUtils.Point(cellBottomRightLon, cellBottomRightLat)
-
-                filteredRules.filter { it.geometry == null
-                        || GeometryUtils.isPointInGeometry(cellMidPoint, it.geometry)
-                        || GeometryUtils.isPointInGeometry(cellTopLeftPoint, it.geometry)
-                        || GeometryUtils.isPointInGeometry(cellBottomRightPoint, it.geometry) }
-            }
-        }
-
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val lng = west + (x + 0.5) * gridSpacingDegLon
-                val lat = north - (y + 0.5) * gridSpacingDegLat
-                val point = GeometryUtils.Point(lng, lat)
-
-                val elevation: Int? = getElev(point)
-                var pixelColor = 0x00000000 // Transparent
-
-                val relevantRules = rulesPerCell[min(y / cellHeightPixels, cellCount - 1)][min(x / cellWidthPixels, cellCount - 1)]
-                for (rule in relevantRules) {
-                    if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
-                        continue
+            for ((rule, bitmask) in ruleToBitmask) {
+                val geometry = rule.geometry
+                if (geometry != null) {
+                    val polygons = when (geometry.type) {
+                        "Polygon" -> geometry.coordinates
+                        "MultiPolygon" -> geometry.coordinates
+                        else -> emptyList()
                     }
+                    for (polygon in polygons) {
+                        for (ring in polygon) {
+                            if (ring.isEmpty()) continue
+                            val pixelPoints = ring.map { coord ->
+                                val px = ((coord[0] - west) / lngRange * width).toFloat()
+                                val py = ((north - coord[1]) / latRange * height).toFloat()
+                                px to py
+                            }
+                            renderer.drawPolygon(pixelPoints, bitmask)
+                        }
+                    }
+                } else {
+                    val startX = (((rule.bounds.minLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
+                    val endX = (((rule.bounds.maxLng - west) / lngRange * width).toInt()).coerceIn(0, width - 1)
+                    val startY = (((north - rule.bounds.maxLat) / latRange * height).toInt()).coerceIn(0, height - 1)
+                    val endY = (((north - rule.bounds.minLat) / latRange * height).toInt()).coerceIn(0, height - 1)
 
-                    val validAspects = rule.validAspects
-                    val checkAspect = !validAspects.isNullOrEmpty()
-                    val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
-                    val dlValue = getDangerValue(rule.properties.dangerLevel)
-                    var effectiveDlValue = dlValue
-                    var slope: Double? = null
+                    renderer.drawPolygon(
+                        listOf(
+                            startX.toFloat() to startY.toFloat(),
+                            (endX + 1).toFloat() to startY.toFloat(),
+                            (endX + 1).toFloat() to (endY + 1).toFloat(),
+                            startX.toFloat() to (endY + 1).toFloat()
+                        ), bitmask
+                    )
+                }
+            }
 
-                    if (checkAspect || checkSlope) {
-                        val metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
-                        if (metrics != null) {
-                            slope = metrics.slope
-                            if (checkSlope && rule.minSlope != null && slope < rule.minSlope) {
+            val bitmaskBuffer = renderer.getPixels()
+            logger?.d(TAG, "generateRaster bitmask drawing complete.: took ${PlatformUtils.currentTimeMillis() - bitmaskStartTime}ms")
+
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val pixelBitmask = bitmaskBuffer[y * width + x]
+                    if (pixelBitmask == 0) continue
+
+                    val lng = west + (x + 0.5) * gridSpacingDegLon
+                    val lat = north - (y + 0.5) * gridSpacingDegLat
+                    val point = GeometryUtils.Point(lng, lat)
+                    val elevation: Int? = getElev(point)
+
+                    var chunkPixelColor: Int? = null
+
+                    for (i in chunk.indices) {
+                        val bit = 1 shl i
+                        if (pixelBitmask and bit != 0) {
+                            val rule = chunk[i]
+                            if (elevation == null || elevation < rule.minElev || elevation > rule.maxElev) {
                                 continue
                             }
-                            if (checkAspect && !validAspects.contains(metrics.aspect)) {
-                                if (dlValue <= 1) continue
-                                else effectiveDlValue--
+
+                            val validAspects = rule.validAspects
+                            val checkAspect = !validAspects.isNullOrEmpty()
+                            val checkSlope = (rule.minSlope != null && rule.minSlope > 0) || rule.applySteepnessLogic
+                            val dlValue = getDangerValue(rule.properties.dangerLevel)
+                            var effectiveDlValue = dlValue
+                            var slope: Double? = null
+
+                            if (checkAspect || checkSlope) {
+                                val metrics = TerrainUtils.calculateTerrainMetrics(point) { p -> getElev(p) }
+                                if (metrics != null) {
+                                    slope = metrics.slope
+                                    if (checkSlope && rule.minSlope != null && slope < rule.minSlope) {
+                                        continue
+                                    }
+                                    if (checkAspect && !validAspects.contains(metrics.aspect)) {
+                                        if (dlValue <= 1) continue
+                                        else effectiveDlValue--
+                                    }
+                                } else {
+                                    continue
+                                }
                             }
-                        } else {
-                            continue
+
+                            var finalColor = ruleColors[rule] ?: 0x00000000
+                            if (rule.applySteepnessLogic && slope != null) {
+                                if (slope > 50) continue
+
+                                var matched = true
+                                if (effectiveDlValue >= 4) {
+                                    finalColor = if (slope >= 30) highColor else considerableColor
+                                } else if (effectiveDlValue == 3) {
+                                    if (slope >= 35) finalColor = highColor
+                                    else if (slope >= 30) finalColor = considerableColor
+                                    else matched = false
+                                } else if (effectiveDlValue == 2) {
+                                    if (slope >= 40) finalColor = highColor
+                                    else if (slope >= 35) finalColor = considerableColor
+                                    else matched = false
+                                } else if (effectiveDlValue == 1) {
+                                    if (slope >= 40) finalColor = considerableColor
+                                    else matched = false
+                                }
+                                if (!matched) continue
+                            }
+                            chunkPixelColor = finalColor
                         }
                     }
-
-                    var finalColor = ruleColors[rule] ?: 0x00000000
-                    if (rule.applySteepnessLogic && slope != null) {
-                        if (slope > 50) continue
-
-                        var matched = true
-                        if (effectiveDlValue >= 4) {
-                            finalColor = if (slope >= 30) highColor else considerableColor
-                        } else if (effectiveDlValue == 3) {
-                            if (slope >= 35) finalColor = highColor
-                            else if (slope >= 30) finalColor = considerableColor
-                            else matched = false
-                        } else if (effectiveDlValue == 2) {
-                            if (slope >= 40) finalColor = highColor
-                            else if (slope >= 35) finalColor = considerableColor
-                            else matched = false
-                        } else if (effectiveDlValue == 1) {
-                            if (slope >= 40) finalColor = considerableColor
-                            else matched = false
-                        }
-                        if (!matched) continue
+                    if (chunkPixelColor != null) {
+                        pixels[y * width + x] = chunkPixelColor
                     }
-                    pixelColor = finalColor
                 }
-                if (pixelColor != 0x00000000) {
-                    coloredPixels++
-                }
-                pixels[y * width + x] = pixelColor
             }
         }
 
-        val duration = PlatformUtils.currentTimeMillis() - startTime
-        logger?.d(TAG, "generateRaster complete. Colored pixels: $coloredPixels / ${width * height}. Rules: ${rules.size}")
-        updateStats(duration, logger)
+        updateStats(PlatformUtils.currentTimeMillis() - startTime, logger)
         
         return RasterData(width, height, pixels)
     }

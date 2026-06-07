@@ -122,4 +122,73 @@ class RasterGeneratorTest {
         val highColor = 0xFFFF0000.toInt()
         assertEquals(highColor, pixel, "Should be red for slope >= 35 with danger 3")
     }
+
+    @Test
+    fun testGenerateRasterWithOverlappingGeometries() {
+        val bounds = GeometryUtils.Bounds(0.0, 10.0, 0.0, 10.0)
+        
+        // Rule 1: Square (2,2) to (6,6), Color Red (#FF0000)
+        val rule1 = GenerationRule(
+            bounds = GeometryUtils.Bounds(2.0, 6.0, 2.0, 6.0),
+            geometry = com.rocasspb.avaawaand.data.Geometry(
+                type = "Polygon",
+                coordinates = listOf(listOf(listOf(
+                    listOf(2.0, 2.0),
+                    listOf(6.0, 2.0),
+                    listOf(6.0, 6.0),
+                    listOf(2.0, 6.0),
+                    listOf(2.0, 2.0)
+                )))
+            ),
+            minElev = 0,
+            maxElev = 5000,
+            color = "#FF0000",
+            properties = RuleProperties(dangerLevel = "4") // High
+        )
+        
+        // Rule 2: Square (4,4) to (8,8), Color Orange (#FF9900)
+        val rule2 = GenerationRule(
+            bounds = GeometryUtils.Bounds(4.0, 8.0, 4.0, 8.0),
+            geometry = com.rocasspb.avaawaand.data.Geometry(
+                type = "Polygon",
+                coordinates = listOf(listOf(listOf(
+                    listOf(4.0, 4.0),
+                    listOf(8.0, 4.0),
+                    listOf(8.0, 8.0),
+                    listOf(4.0, 8.0),
+                    listOf(4.0, 4.0)
+                )))
+            ),
+            minElev = 0,
+            maxElev = 5000,
+            color = "#FF9900",
+            properties = RuleProperties(dangerLevel = "2") // Moderate
+        )
+        
+        val raster = RasterGenerator.generateRaster(
+            listOf(rule1, rule2),
+            bounds,
+            ConstantElevationProvider(1000)
+        )
+        
+        assertNotNull(raster)
+        
+        // Point (3,3) -> Only Rule 1 -> Red
+        val idx33 = getPixelIndex(3.0, 3.0, bounds, raster.width, raster.height)
+        assertEquals(0xFFFF0000.toInt(), raster.pixels[idx33], "Point (3.0, 3.0) should be Red")
+        
+        // Point (7,7) -> Only Rule 2 -> Orange
+        val idx77 = getPixelIndex(7.0, 7.0, bounds, raster.width, raster.height)
+        assertEquals(0xFFFF9900.toInt(), raster.pixels[idx77], "Point (7.0, 7.0) should be Orange")
+        
+        // Point (5,5) -> Both rules -> Rule 1 wins (higher DL)
+        val idx55 = getPixelIndex(5.0, 5.0, bounds, raster.width, raster.height)
+        assertEquals(0xFFFF0000.toInt(), raster.pixels[idx55], "Point (5.0, 5.0) should be Red (higher danger level wins)")
+    }
+    
+    private fun getPixelIndex(lng: Double, lat: Double, bounds: GeometryUtils.Bounds, width: Int, height: Int): Int {
+        val x = ((lng - bounds.minLng) / (bounds.maxLng - bounds.minLng) * width).toInt().coerceIn(0, width - 1)
+        val y = ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat) * height).toInt().coerceIn(0, height - 1)
+        return y * width + x
+    }
 }
