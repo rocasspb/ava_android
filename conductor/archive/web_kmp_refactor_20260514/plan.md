@@ -1,0 +1,31 @@
+# Implementation Plan - Refactor Web App to use KMP Logic
+
+## Phase 1: Wasm Artifact Integration [checkpoint: 33fc042]
+- [x] Task: Create a dedicated directory for KMP artifacts in the web project (e.g., `web/src/kmp/`). 9195417
+- [x] Task: Copy the generated Wasm/JS files from `shared/build/dist/wasmJs/productionLibrary/` to the new directory. 9195417
+- [x] Task: Implement a Wasm loader utility in `web/src/services/WasmLoader.ts` using dynamic `import()`. 19603b2
+- [x] Task: Verify the Wasm module can be successfully initialized and its exports are accessible. 19603b2
+- [x] Task: Conductor - User Manual Verification 'Wasm Artifact Integration' (Protocol in workflow.md) 33fc042
+
+## Phase 2: Geometry and Terrain Utils Refactor [checkpoint: 2d9a889]
+- [x] Task: Refactor `web/src/utils/geometry.ts` to delegate `isPointInPolygon` and `isPointInMultiPolygon` to KMP `GeometryUtils`. 2fe3cf2
+- [x] Task: Refactor `web/src/utils/geo-utils.ts` to delegate `calculateTerrainMetrics` to KMP `TerrainUtils`. 2fe3cf2
+- [x] Task: Ensure the bridge correctly handles coordinate formats (e.g., `[lng, lat]` vs `Point(x, y)`). 2fe3cf2
+- [x] Task: Verify that point-in-polygon and slope/aspect calculations match previous results via manual spot checks. 2fe3cf2
+- [x] Task: Conductor - User Manual Verification 'Geometry and Terrain Utils Refactor' (Protocol in workflow.md) 2d9a889
+
+## Phase 3: Core Logic and Renderer Refactor [checkpoint: 20676d5]
+- [x] Task: Adapt web/src/utils/data-processing.ts to transform CAAML data into KMP GenerationRule and ElevationBand objects. 4a9f3d9
+- [x] Task: Implement a bridge for ElevationQuery that allows KMP logic to call the existing TerrainProvider.getElevation in the web app. 6dcf097
+- [x] Task: Refactor web/src/components/CanvasRenderer.ts to replace the nested loops with a call to KMP RasterGenerator.generateRaster. de25887
+- [x] Task: Verify that the generated raster correctly displays avalanche danger and custom mode overlays on the map. fc853d6
+- [x] Task: Conductor - User Manual Verification 'Core Logic and Renderer Refactor' (Protocol in workflow.md) 20676d5
+
+## Phase 4: Cleanup and Finalization [checkpoint: 5da5fe0]
+- [x] Task: Remove redundant TypeScript implementations from `web/src/utils/` if no longer used. a2b78db
+- [x] Task: Perform a final pass on code style, ensuring all public Wasm-bridging functions are well-documented. 3be99b6
+- [x] Task: Conduct a full end-to-end verification of all application features (Bulletin, Risk, Custom, Point Info). 67732e6
+- [x] Task: Conductor - User Manual Verification 'Cleanup and Finalization' (Protocol in workflow.md) 5da5fe0
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions 38cdeca

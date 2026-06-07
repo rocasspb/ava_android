@@ -86,8 +86,10 @@ class GpxParser {
 
             distance += GeometryUtils.calculateDistance(p1.lat, p1.lon, p2.lat, p2.lon)
 
-            if (p1.elevation != null && p2.elevation != null) {
-                val diff = p2.elevation - p1.elevation
+            val elev1 = p1.elevation
+            val elev2 = p2.elevation
+            if (elev1 != null && elev2 != null) {
+                val diff = elev2 - elev1
                 if (diff > 0) {
                     elevationGain += diff
                 } else {

@@ -24,7 +24,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.MapboxMap
-import com.mapbox.maps.Style
 import com.mapbox.maps.extension.compose.MapEffect
 import com.mapbox.maps.extension.compose.MapboxMap as MapboxMapCompose
 import com.mapbox.maps.extension.compose.animation.viewport.MapViewportState
@@ -48,11 +47,14 @@ import com.mapbox.maps.plugin.locationcomponent.location
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateBearing
 import com.mapbox.maps.plugin.viewport.data.FollowPuckViewportStateOptions
 import com.mapbox.maps.toCameraOptions
+import com.rocasspb.avaawaand.logic.Logger
 import com.rocasspb.avaawaand.logic.RasterGenerator
 import com.rocasspb.avaawaand.logic.TerrainRgbElevationProvider
 import com.rocasspb.avaawaand.logic.VisualizationMode
 import com.rocasspb.avaawaand.utils.AvalancheConfig.MAX_DISTANCE_PITCHED
 import com.rocasspb.avaawaand.utils.GeometryUtils
+import com.rocasspb.avaawaand.utils.toBitmap
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -353,8 +355,13 @@ fun MapContent(
                 val provider = TerrainRgbElevationProvider()
                 provider.prepare(renderBounds, zoom)
 
-                val bitmap = RasterGenerator.drawToBitmap(generationRules, renderBounds, provider)
-                if (bitmap != null) {
+                val rasterData = RasterGenerator.generateRaster(generationRules, renderBounds, provider, object : Logger {
+                    override fun d(tag: String, message: String) {
+                        Log.d(tag, message)
+                    }
+                })
+                if (rasterData != null) {
+                    val bitmap = rasterData.toBitmap()
                     val coords = listOf(
                         listOf(renderBounds.minLng, renderBounds.maxLat),
                         listOf(renderBounds.maxLng, renderBounds.maxLat),
