@@ -1,0 +1,71 @@
+name: Publish shared Wasm library
+
+# Publishes the `shared` module's Wasm build as a private npm package to GitHub Packages.
+# Trigger: push a tag like `shared-v0.1.0` (version is taken from the tag),
+# or run manually from the Actions tab and type the version.
+on:
+  push:
+    tags:
+      - 'shared-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version, e.g. 0.1.0 (no "shared-v" prefix)'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            V="${{ github.event.inputs.version }}"
+          else
+            V="${GITHUB_REF_NAME#shared-v}"
+          fi
+          echo "value=$V" >> "$GITHUB_OUTPUT"
+
+      - name: Build Wasm library (production)
+        run: ./gradlew :shared:wasmJsBrowserProductionLibraryDistribution --no-daemon
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@rocasspb'
+
+      - name: Prepare package.json
+        working-directory: shared/build/dist/wasmJs/productionLibrary
+        run: |
+          node -e '
+            const fs = require("fs");
+            const p = JSON.parse(fs.readFileSync("package.json", "utf8"));
+            p.name = "@rocasspb/avaawa-shared";
+            p.version = process.argv[1];
+            p.type = "module";
+            p.repository = { type: "git", url: "git+https://github.com/rocasspb/ava_android.git" };
+            p.publishConfig = { registry: "https://npm.pkg.github.com" };
+            fs.writeFileSync("package.json", JSON.stringify(p, null, 2));
+          ' "${{ steps.version.outputs.value }}"
+          cat package.json
+
+      - name: Publish
+        working-directory: shared/build/dist/wasmJs/productionLibrary
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
