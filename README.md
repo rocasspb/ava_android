@@ -52,3 +52,16 @@ To build the Wasm library target, use the following Gradle commands from the roo
 ```
 
 Because the `shared` module exposes a `wasmJs` library (`binaries.library()`), these commands will compile the Kotlin code into Wasm libraries which can be consumed by a web frontend or published locally.
+
+### Publishing the library to the web app
+
+The web app (`ava_gem`) consumes the Wasm build as the private npm package `@rocasspb/avaawa-shared` on GitHub
+Packages. To release a version, tag the tested commit and push the tag:
+
+```bash
+git tag shared-v0.2.0
+git push origin shared-v0.2.0
+```
+
+The `Publish shared Wasm library` workflow builds the production library and publishes it. The version comes
+from the tag. Then bump the version in `ava_gem` (see its README).
